@@ -13,27 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package cngcontrol;
+#include "CP.h"
 
-//
-// TODO auto-generated module
-//
-module Switch
+Define_Module(CP);
+
+void CP::initialize()
 {
-    @display("i=block/switch");
-    gates:
-        input in[5];
-        output out[5];
-    submodules:
-        conP[5]: CP {
-            @display("i=block/boundedqueue");
-        }
-        control: MsgCntrl {
-            @display("i=block/dispatch");
-        }
-    connections:
-        control.in[i] <-- in[i] for i=0..4;
-        conP[i].in <-- control.out[i] for i=0..4;
-        conP[i].out --> out[i] for i=0..4;
+    // TODO - Generated method body
+}
 
+void CP::handleMessage(cMessage *msg)
+{
+    // TODO - Generated method body
 }
