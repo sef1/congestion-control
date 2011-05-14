@@ -31,6 +31,7 @@ network Dumbell
         switch[2]: Switch {
             @display("i=,gold");
         }
+        
     connections:
 
        for j=0..sizeof(switch)-1, for i=0..(sizeof(host)/2-1){

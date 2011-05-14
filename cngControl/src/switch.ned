@@ -20,7 +20,11 @@ package cngcontrol;
 //
 module Switch
 {
-    @display("i=block/switch");
+    
+    
+    parameters:
+      @display("i=block/switch");
+      string tableFile = "switch";  
     gates:
         input in[5];
         output out[5];
