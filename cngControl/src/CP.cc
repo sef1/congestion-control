@@ -19,7 +19,7 @@ Define_Module(CP);
 
 void CP::initialize()
 {
-    // TODO - Generated method body
+//TODO
 }
 
 void CP::handleMessage(cMessage *msg)

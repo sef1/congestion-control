@@ -14,12 +14,65 @@
 // 
 
 #include "MsgCntrl.h"
-
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 Define_Module(MsgCntrl);
 
 void MsgCntrl::initialize()
 {
-    // TODO - Generated method body
+    //Getting index of parent module for MAC address
+	for (int i = 0; i < MAC_SIZE; i++){
+		if (i == 4)
+			myMac[i]=getParentModule()->getIndex();
+		else
+			myMac[i]=0xFF;
+	}
+	string temp=getParentModule()->par("tableFile");
+	char* fileName= new char[10];
+	sprintf(fileName,"%s%d",temp.c_str(),myMac[4]);
+	cGate *g=gate("in",0);
+	unsigned int hostsNum = g->getVectorSize();
+	switchTbl = new tblEntry[hostsNum];
+	makeTable(fileName, hostsNum);
+//	EV << fileName << endl;
+//	FILE* f1=fopen(fileName,"rt");
+//	fscanf(f1,"%s",temp2);
+//	EV << temp2 << endl;
+
+//	cGate* inGate = gate("in",0);
+//	inGate->getNextGate();
+//	for (int i = 0; i < SWITCH_PORT_NUM; i++)
+//	{
+//		switchTbl[i].gateName=getGateNames().at(i);
+//	}
+	//EV << getGateNames().at(1) << endl;
+
+}
+
+/*
+ * Description: This Function makes switch table from file
+ */
+void MsgCntrl::makeTable(const char* fileName, const int portNum)
+{
+	FILE* fStr = fopen(fileName,"r");
+	int tPort;
+	char* tHost = new char[4];//max 255 host for network
+	for (int i = 0; i < portNum; i++)
+	{
+		fscanf(fStr,"%d",&tPort);
+		switchTbl[i].port = tPort;
+		fscanf(fStr,"%s",tHost);
+		while(strcmp(tHost,"$"))
+		{
+			switchTbl[i].hostNum.push_back(atoi(tHost));
+			fscanf(fStr,"%s",tHost);
+		}
+	}
+	for(int j=0;j<4;j++){EV << "host: " << switchTbl[4].hostNum[j] << endl;}
+	fclose(fStr);
+	delete tHost;
+
 }
 
 void MsgCntrl::handleMessage(cMessage *msg)
