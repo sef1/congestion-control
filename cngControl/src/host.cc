@@ -21,7 +21,6 @@
 #define ETH_LENGTH 14
 #define UNDEFINED -1
 // for QCN algorithm
-#define MAX_TX 10000000000 // 10Gbps
 Define_Module(Host);
 
 void Host::initialize()
@@ -65,8 +64,8 @@ void Host::initialize()
 		 * initializing variables for QCN algorithm
 		 */
 		rateLimiter.state=false;
-		rateLimiter.cRate=MAX_TX; //TODO solve this problem.
-		rateLimiter.tRate=MAX_TX;
+		rateLimiter.cRate=par("maxDataRate"); //TODO solve this problem.
+		rateLimiter.tRate=par("maxDataRate");
 		rateLimiter.TXBCount=0;
 		rateLimiter.SICount=0;
 		rateLimiter.timer=false;
