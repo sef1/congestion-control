@@ -27,6 +27,15 @@ typedef struct msgStore{
 	Eth_pck* msg;
 	cMessage* self;
 }msgStore;
+typedef struct RL{
+	bool state;
+	double cRate;
+	double tRate;
+	double TXBCount;
+	int SICount;
+	bool timer;
+	int timerSCount;
+}RL;
 typedef enum types{general,request,reply}types;
 class Host : public cSimpleModule
 {
@@ -40,11 +49,20 @@ class Host : public cSimpleModule
     virtual void handleRegularMsg(Eth_pck* msg);
     virtual void handleFeedbackMsg(Eth_pck* msg);
     virtual unsigned char decideSend();
+    virtual void afterSending(Eth_pck* msg);
   private: // description on what those functions do on c file
     int *randArr; // used for randoming
-    vector<msgStore> msgQueue; // messages are stored here if channel is busy
+    vector<Eth_pck*> msgQueue; // messages are stored here if channel is busy
     void sendMessage(Eth_pck* etherPacket,const char * gateName);
     unsigned int msgIdCnt;
+    // statistics counters
+    unsigned long int requestMsgGenCnt;
+    unsigned long int replyMsgGenCnt;
+    unsigned long int generalMsgGenCnt;
+    unsigned long int replyMsgRecCnt;
+
+    // Variables for QCN algorithm
+    RL rateLimiter;
 };
 
 #endif
