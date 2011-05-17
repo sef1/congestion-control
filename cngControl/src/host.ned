@@ -24,6 +24,7 @@ simple Host
         @display("i=device/pc");
         int hostNum = default(8);
         volatile int dataLength;
+        int destChoice = default(0);
     gates:
         input in;
         output out;

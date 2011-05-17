@@ -15,19 +15,13 @@
 
 #include "host.h"
 #include "Eth_pck_m.h"
-#define PREAMBLE_START 170 // 0xAA
-#define PREAMBLE_END 171 // 0xAB
-#define ARP_REQUEST 0
-#define ARP_REPLY 1
 #define FEEDBACK 1600
 #define ARP_REPLY_LENGTH 10
 #define ARP_REQUEST_LENGTH 6
 #define ETH_LENGTH 14
-#define BROADCAST 0xFF
 #define UNDEFINED -1
-#define IP1 172
-#define IP2 168
-#define IP3 32
+// for QCN algorithm
+#define MAX_TX 10000000000 // 10Gbps
 Define_Module(Host);
 
 void Host::initialize()
@@ -60,6 +54,23 @@ void Host::initialize()
 		}
 		cMessage* msg = new cMessage("sendEvent");
 		scheduleAt(simTime(),msg);
+		/*
+		 * initializing statistics variables
+		 */
+		requestMsgGenCnt=0;
+		replyMsgGenCnt=0;
+		generalMsgGenCnt=0;
+		replyMsgRecCnt=0;
+		/*
+		 * initializing variables for QCN algorithm
+		 */
+		rateLimiter.state=false;
+		rateLimiter.cRate=MAX_TX; //TODO solve this problem.
+		rateLimiter.tRate=MAX_TX;
+		rateLimiter.TXBCount=0;
+		rateLimiter.SICount=0;
+		rateLimiter.timer=false;
+		rateLimiter.timerSCount=0;
 }
 
 void Host::handleMessage(cMessage *msg)
@@ -110,7 +121,7 @@ void Host::processSelfTimer(cMessage *msg)
 		}
 		else // sending msg from queue
 		{
-			pck=msgQueue[0].msg;
+			pck=msgQueue[0];
 			msgQueue.erase(msgQueue.begin());
 		}
 		send(pck,"out");
@@ -143,6 +154,19 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	pck->setMsgNumber(msgIdCnt++);
 			// creating the type of the message
 	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
+	// counting statistics
+	switch (type)
+	{
+		case general:
+			generalMsgGenCnt++;
+			break;
+		case request:
+			requestMsgGenCnt++;
+			break;
+		case reply:
+			replyMsgGenCnt++;
+
+	}
 	return pck;
 }
 /*
@@ -150,7 +174,15 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
  */
 void Host::handleRegularMsg(Eth_pck* msg)
 {
-
+	if (msg->getType()==request)
+	{
+		Eth_pck* pck = generateMessage(reply,msg->getMacSrc(5));
+		msgQueue.push_back(pck);
+	}
+	else if (msg->getType()==reply)
+	{
+		replyMsgRecCnt++;
+	}
 }
 /*
  * DescriptionL: this function handles feedback messages
@@ -165,5 +197,23 @@ void Host::handleFeedbackMsg(Eth_pck* msg)
  */
 unsigned char Host::decideSend()
 {
-	return (unsigned char)intuniform(0,randArr[getVectorSize()-1]);
+	int choice = par("destChoice");
+	unsigned char destination;
+	switch (choice)
+	{
+	case 0:
+		destination=(unsigned char)intuniform(0,randArr[getVectorSize()-1]);
+		break;
+	default:
+		destination=(unsigned char)intuniform(0,randArr[getVectorSize()-1]);
+		break;
+	};
+	return destination;
+}
+/*
+ * Description: part of the QCN algorithm, several calculations made after a frame is sent
+ */
+void Host::afterSending(Eth_pck* msg)
+{
+
 }

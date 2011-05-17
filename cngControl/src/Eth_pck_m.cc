@@ -131,12 +131,12 @@ void Eth_pck::setLength(unsigned short length_var)
     this->length_var = length_var;
 }
 
-char Eth_pck::getType() const
+int Eth_pck::getType() const
 {
     return type_var;
 }
 
-void Eth_pck::setType(char type_var)
+void Eth_pck::setType(int type_var)
 {
     this->type_var = type_var;
 }
@@ -261,7 +261,7 @@ const char *Eth_pckDescriptor::getFieldTypeString(void *object, int field) const
         "unsigned char",
         "unsigned char",
         "unsigned short",
-        "char",
+        "int",
         "unsigned int",
     };
     return (field>=0 && field<5) ? fieldTypeStrings[field] : NULL;
