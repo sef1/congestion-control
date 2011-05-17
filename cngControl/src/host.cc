@@ -19,7 +19,7 @@
 #define PREAMBLE_END 171 // 0xAB
 #define ARP_REQUEST 0
 #define ARP_REPLY 1
-#define CNG_TYPE 1600
+#define FEEDBACK 1600
 #define ARP_REPLY_LENGTH 10
 #define ARP_REQUEST_LENGTH 6
 #define ETH_LENGTH 14
@@ -37,13 +37,14 @@ void Host::initialize()
 		 */
 		int myId=getIndex();
 		myMac = new unsigned char[6];
-		myMac[0] = 17; // 11 HEX
-		myMac[1] = 17;
-		myMac[2] = 17;
-		myMac[3] = 17;
-		myMac[4] = 17;
+		myMac[0] = 0xFF;
+		myMac[1] = 0xFF;
+		myMac[2] = 0xFF;
+		myMac[3] = 0xFF;
+		myMac[4] = 0xFF;
 		myMac[5] = getIndex();
 		EV << "Initialize Eth layer: "<< myMac[5] <<"\n";
+		msgIdCnt=0;
 		// init rand array for ip randomize, array will hold all adresses of all host but myself
 		// on later stages will random one of the cells.
 		int size = par("hostNum");
@@ -68,56 +69,101 @@ void Host::handleMessage(cMessage *msg)
 	else  // message arrived from switch
 		processMsgFromLowerLayer(check_and_cast<Eth_pck *>(msg));
 }
+/*
+ * Description: this function handles messages that were received from switch
+ */
 void Host::processMsgFromLowerLayer(Eth_pck *packet)
 {
-	// checking message type - if is mac it will be handled differently
-	if (packet->getLength() == CNG_TYPE)
+	bool isMine = true;
+	for (unsigned int i=0;i<packet->getMacDestArraySize() && isMine;i++)
 	{
-		// TODO stuff here
+		if (myMac[i] != packet->getMacDest(i))
+			isMine = false;
+	}
+	if (isMine) // message is mine
+	{
+		if (packet->getLength() == FEEDBACK)
+			handleFeedbackMsg(packet);
+		else // regular message need to pass to check if its mine. and do stuff
+			handleRegularMsg(packet);
 		delete packet;
 	}
-	else // regular message need to pass to check if its mine. and do stuff
+	else // message is not mine
 	{
-		bool isMine = true;
-		for (unsigned int i=0;i<packet->getMacDestArraySize() && isMine;i++)
-		{
-			if (myMac[i] != packet->getMacDest(i))
-				isMine = false;
-		}
-		if (isMine) // message is mine
-		{
-			// TODO do stuff
-			delete packet;
-		}
-		else // message is not mine
-		{
-			// TODO do stuff
-			delete packet;
-		}
+		// TODO do stuff
+		delete packet;
 	}
 }
-
+/*
+ * Description: this function handles self messges,
+ * 				this is the function that sends messages to out gate
+ */
 void Host::processSelfTimer(cMessage *msg)
 {
 	if (!strcmp(msg->getName(),"sendEvent"))
 	{
-		Eth_pck * pck = new Eth_pck("sending");
-		unsigned int i;
-		int hostNum = par("hostNum");
-		unsigned short length = par("dataLength");
-		for (i=0; i<pck->getMacDestArraySize()-1;i++)
+		Eth_pck* pck;
+		if (msgQueue.size() !=0)
 		{
-			pck->setMacDest(i,myMac[i]);
+			unsigned char destination = decideSend();
+			pck=generateMessage(intuniform(0,1),destination);
 		}
-		pck->setMacDest(i,randArr[intuniform(0,hostNum-1)]);
-		for (i=0; i<pck->getMacSrcArraySize();i++)
+		else // sending msg from queue
 		{
-			pck->setMacSrc(i,myMac[i]);
+			pck=msgQueue[0].msg;
+			msgQueue.erase(msgQueue.begin());
 		}
-		pck->setLength(length);
-		pck->setByteLength(length);
 		send(pck,"out");
 		cChannel* cha= gate("out")->getTransmissionChannel();
 		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
 	}
+}
+/*
+ * Description: this function generates a message to send.
+ * 				Types - 0 - general, 1- Request , 2- reply
+ * 				destination- the msg destination.
+ */
+Eth_pck* Host::generateMessage(int type,unsigned char destination)
+{
+	Eth_pck* pck = new Eth_pck("sending");
+	unsigned int i;
+	unsigned short length = par("dataLength");
+	for (i=0; i<pck->getMacDestArraySize()-1;i++)
+	{
+		pck->setMacDest(i,myMac[i]);
+	}
+	pck->setMacDest(i,destination);
+	for (i=0; i<pck->getMacSrcArraySize();i++)
+	{
+		pck->setMacSrc(i,myMac[i]);
+	}
+	pck->setLength(length);
+	pck->setByteLength(length);
+	// giving the message a number
+	pck->setMsgNumber(msgIdCnt++);
+			// creating the type of the message
+	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
+	return pck;
+}
+/*
+ *	Description: this function handles regulare messages
+ */
+void Host::handleRegularMsg(Eth_pck* msg)
+{
+
+}
+/*
+ * DescriptionL: this function handles feedback messages
+ */
+void Host::handleFeedbackMsg(Eth_pck* msg)
+{
+
+}
+/*
+ * Description: this function decides to which host to send data
+ * 				TODO need to think more about this function
+ */
+unsigned char Host::decideSend()
+{
+	return (unsigned char)intuniform(0,randArr[getVectorSize()-1]);
 }
