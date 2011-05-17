@@ -23,6 +23,9 @@
  *     unsigned char macDest[6];
  *     unsigned char macSrc[6];
  *     unsigned short length;
+ *      
+ *     char type; 
+ *     unsigned int msgNumber;
  * }
  * </pre>
  */
@@ -32,6 +35,8 @@ class Eth_pck : public ::cPacket
     unsigned char macDest_var[6];
     unsigned char macSrc_var[6];
     unsigned short length_var;
+    char type_var;
+    unsigned int msgNumber_var;
 
     // protected and unimplemented operator==(), to prevent accidental usage
     bool operator==(const Eth_pck&);
@@ -54,6 +59,10 @@ class Eth_pck : public ::cPacket
     virtual void setMacSrc(unsigned int k, unsigned char macSrc_var);
     virtual unsigned short getLength() const;
     virtual void setLength(unsigned short length_var);
+    virtual char getType() const;
+    virtual void setType(char type_var);
+    virtual unsigned int getMsgNumber() const;
+    virtual void setMsgNumber(unsigned int msgNumber_var);
 };
 
 inline void doPacking(cCommBuffer *b, Eth_pck& obj) {obj.parsimPack(b);}
