@@ -27,6 +27,7 @@ typedef struct msgStore{
 	Eth_pck* msg;
 	cMessage* self;
 }msgStore;
+typedef enum types{general,request,reply}types;
 class Host : public cSimpleModule
 {
   protected:
@@ -35,10 +36,15 @@ class Host : public cSimpleModule
     virtual void processMsgFromLowerLayer(Eth_pck *packet);
     virtual void processSelfTimer(cMessage *msg);
     unsigned char *myMac; // will hold my mac aderess
+    virtual Eth_pck* generateMessage(int type,unsigned char destination);
+    virtual void handleRegularMsg(Eth_pck* msg);
+    virtual void handleFeedbackMsg(Eth_pck* msg);
+    virtual unsigned char decideSend();
   private: // description on what those functions do on c file
     int *randArr; // used for randoming
     vector<msgStore> msgQueue; // messages are stored here if channel is busy
     void sendMessage(Eth_pck* etherPacket,const char * gateName);
+    unsigned int msgIdCnt;
 };
 
 #endif
