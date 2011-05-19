@@ -17,6 +17,8 @@
 #define __CNGCONTROL_CP_H_
 
 #include <omnetpp.h>
+#include "Eth_pck_m.h"
+#include "feedBack_m.h"
 
 /**
  * TODO - Generated class
@@ -39,14 +41,17 @@ class CPalg
 	double qlenOld;
 	int qntzFb;
 	int w;
-	double fb;
+	int fb;
+	int generateFbFrame;
 
 
  public:
-	static double markTable[8];//={150,75,50,37.5,30,25,21.5,18.5};
+	static double markTable[8];
 	CPalg(double qeqPar);
 	~CPalg();
-	virtual void receivedFrame();
+	virtual void receivedFrame(Eth_pck *incomeFrame);
+	virtual int quantitize(int toQuan);
+	virtual void forward(Eth_pck *fbMsg);
 };
 double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
 
