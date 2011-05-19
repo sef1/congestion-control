@@ -64,8 +64,9 @@ void Host::initialize()
 		 * initializing variables for QCN algorithm
 		 */
 		rateLimiter.state=false;
-		rateLimiter.cRate=par("maxDataRate"); //TODO solve this problem.
-		rateLimiter.tRate=par("maxDataRate");
+		cDatarateChannel* chtemp =(cDatarateChannel*)gate("out")->getTransmissionChannel();
+		rateLimiter.cRate=chtemp->getDatarate();
+		rateLimiter.tRate=chtemp->getDatarate();
 		rateLimiter.TXBCount=0;
 		rateLimiter.SICount=0;
 		rateLimiter.timer=false;
