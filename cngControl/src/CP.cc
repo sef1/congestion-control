@@ -28,6 +28,7 @@ void CP::initialize()
 void CP::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+
 }
 
 /*
@@ -41,18 +42,65 @@ CPalg::CPalg(double qeqPar)
 	qntzFb = 0;
 	qlenOld =0;
 	fb = 0;
-	markTable[0]=150;
-	//markTable = {150,75,50,37.5,30,25,21.5,18.5};
+}
+/*
+ * 6 bit quantize get 6 MSB from param toQuan
+ */
+int CPalg::quantitize(int toQuan)
+{
+	int temp = 1;
+	int qntzFb = 0;
+	if (toQuan >= 0)
+		return 0;
+	qntzFb = -1*toQuan;
+	temp = (temp << 31);
+	while(!(qntzFb & temp))
+		qntzFb = (qntzFb << 1);
+	temp = (temp >> 5);
+	return qntzFb/temp;
+}
+void CPalg::forward(Eth_pck *fbMsg)
+{
+	//TODO complete this
+	//need to check that channel is busy
+	//blablabla...
 }
 //double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
-void CPalg::receivedFrame()
+void CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
+	double periodToMark;
+	double timeToMark = 0;
+
 	fb = (qeq - qlen)-w*(qlen -qlenOld);
 	if (fb < -qeq*(2*w+1))
 		fb= -qeq*(2*w+1);
 	else if (fb>0)
 		fb=0;
 
+	qntzFb = quantitize(fb);//TODO need to check this function
+
+	//sampaling probability is a function of FB
+	periodToMark = markTable[qntzFb];
+	if (timeToMark > periodToMark)
+	{
+		//generate a feedback Frame if fb is negative
+		if (fb < 0)
+			generateFbFrame = 1;
+		//update qlenOld
+		qlenOld = qlen;
+		timeToMark=0;
+	}
+	else
+	{
+		timeToMark += (incomeFrame->getByteLength())/1000;//timeToMark in KB
+	}
+
+	if (generateFbFrame)
+	{
+		//TODO generate FeedBack Frame
+//		Eth_pck *packet;
+//		forward(packet);
+	}
 }
 CPalg::~CPalg()
 {
