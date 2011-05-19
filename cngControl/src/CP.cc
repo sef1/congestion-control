@@ -19,10 +19,42 @@ Define_Module(CP);
 
 void CP::initialize()
 {
-//TODO
+	/* Denises Tests*/
+	CPalg cpPoint(par("Q_eq"));
+	EV << "****Denis TEST: " << cpPoint.markTable[0] << endl;
+	//TODO
 }
 
 void CP::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+}
+
+/*
+ * Function implamentation of CPalg class
+ */
+CPalg::CPalg(double qeqPar)
+{
+	//Initialize variables
+	qeq = qeqPar;
+	qlen = 0;
+	qntzFb = 0;
+	qlenOld =0;
+	fb = 0;
+	markTable[0]=150;
+	//markTable = {150,75,50,37.5,30,25,21.5,18.5};
+}
+//double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
+void CPalg::receivedFrame()
+{
+	fb = (qeq - qlen)-w*(qlen -qlenOld);
+	if (fb < -qeq*(2*w+1))
+		fb= -qeq*(2*w+1);
+	else if (fb>0)
+		fb=0;
+
+}
+CPalg::~CPalg()
+{
+
 }

@@ -28,4 +28,26 @@ class CP : public cSimpleModule
     virtual void handleMessage(cMessage *msg);
 };
 
+/*
+ * This class define Conjection Point variables and function
+ */
+class CPalg
+{
+ protected:
+	double qeq;
+	double qlen;
+	double qlenOld;
+	int qntzFb;
+	int w;
+	double fb;
+
+
+ public:
+	static double markTable[8];//={150,75,50,37.5,30,25,21.5,18.5};
+	CPalg(double qeqPar);
+	~CPalg();
+	virtual void receivedFrame();
+};
+double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
+
 #endif
