@@ -27,7 +27,43 @@ typedef struct msgStore{
 	Eth_pck* msg;
 	cMessage* self;
 }msgStore;
-typedef struct RL{
+
+typedef enum types{general,request,reply}types;
+
+
+
+class RP
+{
+public:
+	/*
+	 * Description:	this function initializes the RL
+	 */
+	RP(cDatarateChannel* channel);
+	/*
+	 * Description: the destructor for deleting stuff if needed
+	 */
+	virtual ~RP();
+	/*
+	 * those are the variables of the QCN.
+	 */
+	/*
+	 * Description: this function handles a feedback msg
+	 */
+	virtual void FeedbackMsg(Eth_pck* msg);
+	/*
+	 * Description: this funciton calculates the stage state of the RL and increases rate if neccesery
+	 */
+	virtual void afterTransmit(Eth_pck* msg);
+	/*
+	 * Descrption: this funciton increases the rate according to information in fb
+	 */
+	virtual void selfIncrease();
+	/*
+	 * Description:	this function is called when the timer finish counting to 10ms
+	 */
+	virtual void timeExpired();
+
+	double getMaxDataRate(){return maxDataRate;};
 	bool state;
 	double cRate;
 	double tRate;
@@ -35,8 +71,10 @@ typedef struct RL{
 	int SICount;
 	bool timer;
 	int timerSCount;
-}RL;
-typedef enum types{general,request,reply}types;
+private:
+	double maxDataRate;
+};
+
 class Host : public cSimpleModule
 {
   protected:
@@ -47,9 +85,7 @@ class Host : public cSimpleModule
     unsigned char *myMac; // will hold my mac aderess
     virtual Eth_pck* generateMessage(int type,unsigned char destination);
     virtual void handleRegularMsg(Eth_pck* msg);
-    virtual void handleFeedbackMsg(Eth_pck* msg);
     virtual unsigned char decideSend();
-    virtual void afterSending(Eth_pck* msg);
   private: // description on what those functions do on c file
     int *randArr; // used for randoming
     vector<Eth_pck*> msgQueue; // messages are stored here if channel is busy
@@ -60,9 +96,7 @@ class Host : public cSimpleModule
     unsigned long int replyMsgGenCnt;
     unsigned long int generalMsgGenCnt;
     unsigned long int replyMsgRecCnt;
-
-    // Variables for QCN algorithm
-    RL rateLimiter;
+    RP* RL;
 };
 
 #endif

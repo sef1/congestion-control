@@ -15,6 +15,7 @@
 
 #include "host.h"
 #include "Eth_pck_m.h"
+#include "feedBack_m.h"
 #define FEEDBACK 1600
 #define ARP_REPLY_LENGTH 10
 #define ARP_REQUEST_LENGTH 6
@@ -22,7 +23,6 @@
 #define UNDEFINED -1
 // for QCN algorithm
 Define_Module(Host);
-
 void Host::initialize()
 {
 		/*
@@ -63,14 +63,7 @@ void Host::initialize()
 		/*
 		 * initializing variables for QCN algorithm
 		 */
-		rateLimiter.state=false;
-		cDatarateChannel* chtemp =(cDatarateChannel*)gate("out")->getTransmissionChannel();
-		rateLimiter.cRate=chtemp->getDatarate();
-		rateLimiter.tRate=chtemp->getDatarate();
-		rateLimiter.TXBCount=0;
-		rateLimiter.SICount=0;
-		rateLimiter.timer=false;
-		rateLimiter.timerSCount=0;
+		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel());
 }
 
 void Host::handleMessage(cMessage *msg)
@@ -94,7 +87,7 @@ void Host::processMsgFromLowerLayer(Eth_pck *packet)
 	if (isMine) // message is mine
 	{
 		if (packet->getLength() == FEEDBACK)
-			handleFeedbackMsg(packet);
+			RL->FeedbackMsg(packet);
 		else // regular message need to pass to check if its mine. and do stuff
 			handleRegularMsg(packet);
 		delete packet;
@@ -185,13 +178,6 @@ void Host::handleRegularMsg(Eth_pck* msg)
 	}
 }
 /*
- * DescriptionL: this function handles feedback messages
- */
-void Host::handleFeedbackMsg(Eth_pck* msg)
-{
-
-}
-/*
  * Description: this function decides to which host to send data
  * 				TODO need to think more about this function
  */
@@ -211,9 +197,32 @@ unsigned char Host::decideSend()
 	return destination;
 }
 /*
- * Description: part of the QCN algorithm, several calculations made after a frame is sent
+ * Description: the constructor of RP;
  */
-void Host::afterSending(Eth_pck* msg)
+RP::RP(cDatarateChannel* channel)
+{
+	state=false;
+	cRate=channel->getDatarate();
+	tRate=channel->getDatarate();
+	maxDataRate=channel->getDatarate();
+	TXBCount=0;
+	SICount=0;
+	timer=false;
+	timerSCount=0;
+}
+RP::~RP(){}
+
+void RP::FeedbackMsg(Eth_pck* msg)
+{
+	FeedBack * FB = check_and_cast<FeedBack*>(msg->decapsulate());
+}
+void RP::afterTransmit(Eth_pck* msg)
 {
 
+}
+void RP::selfIncrease()
+{
+}
+void RP::timeExpired()
+{
 }
