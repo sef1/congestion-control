@@ -19,18 +19,36 @@ Define_Module(CP);
 
 void CP::initialize()
 {
-	/* Denises Tests*/
-	CPalg cpPoint(par("Q_eq"));
-	EV << "****Denis TEST: " << cpPoint.markTable[0] << endl;
+	cpPoint = new CPalg(par("Q_eq"));
+	Eth_pck *test = new Eth_pck();
+	test->setByteLength(2024);
+	cpPoint->receivedFrame(test);
+	//EV << "****Denis TEST: " << cpPoint.markTable[0] << endl;
 	//TODO
 }
 
 void CP::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+	if (check_and_cast<Eth_pck *>(msg)->getType()==0)
+		processFbFrame(msg);//Feedback frame immediately forwarded to the channel without queuing
+	else  // message arrived from MsgControl
+		processMsgFromControl(check_and_cast<Eth_pck *>(msg));
+}
+/*
+ * This function immediately pass msg that shoud be Feed Back frame to the channel
+ */
+void CP::processFbFrame(cMessage *msg)
+{
 
 }
+/*
+ * This function take care to all other messages that need to send
+ */
+void CP::processMsgFromControl(Eth_pck *msg)
+{
 
+}
 /*
  * Function implamentation of CPalg class
  */
@@ -38,18 +56,19 @@ CPalg::CPalg(double qeqPar)
 {
 	//Initialize variables
 	qeq = qeqPar;
-	qlen = 0;
+	qlen = 250;//TODO chenge this
 	qntzFb = 0;
 	qlenOld =0;
 	fb = 0;
+	w = 2;
 }
 /*
  * 6 bit quantize get 6 MSB from param toQuan
  */
 int CPalg::quantitize(int toQuan)
 {
-	int temp = 1;
-	int qntzFb = 0;
+	unsigned int temp = 1;
+	unsigned int qntzFb = 0;
 	if (toQuan >= 0)
 		return 0;
 	qntzFb = -1*toQuan;
@@ -70,6 +89,7 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
 	double periodToMark;
 	double timeToMark = 0;
+	double temp = 0;
 
 	fb = (qeq - qlen)-w*(qlen -qlenOld);
 	if (fb < -qeq*(2*w+1))
@@ -80,7 +100,7 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 	qntzFb = quantitize(fb);//TODO need to check this function
 
 	//sampaling probability is a function of FB
-	periodToMark = markTable[qntzFb];
+	periodToMark = markTable[qntzFb/8];
 	if (timeToMark > periodToMark)
 	{
 		//generate a feedback Frame if fb is negative
@@ -92,7 +112,8 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 	}
 	else
 	{
-		timeToMark += (incomeFrame->getByteLength())/1000;//timeToMark in KB
+		temp = (incomeFrame->getByteLength())/1000;
+		timeToMark += temp;//timeToMark in KB
 	}
 
 	if (generateFbFrame)
