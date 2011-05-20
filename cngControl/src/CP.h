@@ -20,16 +20,6 @@
 #include "Eth_pck_m.h"
 #include "feedBack_m.h"
 
-/**
- * TODO - Generated class
- */
-class CP : public cSimpleModule
-{
-  protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-};
-
 /*
  * This class define Conjection Point variables and function
  */
@@ -39,7 +29,7 @@ class CPalg
 	double qeq;
 	double qlen;
 	double qlenOld;
-	int qntzFb;
+	unsigned int qntzFb;
 	int w;
 	int fb;
 	int generateFbFrame;
@@ -54,5 +44,19 @@ class CPalg
 	virtual void forward(Eth_pck *fbMsg);
 };
 double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
+
+/**
+ * TODO - Generated class
+ */
+class CP : public cSimpleModule
+{
+  protected:
+	CPalg *cpPoint;
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+    virtual void processFbFrame(cMessage *msg);
+    virtual void processMsgFromControl(Eth_pck *msg);
+};
+
 
 #endif
