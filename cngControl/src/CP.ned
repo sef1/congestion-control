@@ -25,6 +25,6 @@ simple CP
         volatile double Q_eq = 200;//Need to check this
         volatile double tToMarkRnd;  
     gates:
-        input in;
+        inout mc;//Message control (mc)
         output out;
 }

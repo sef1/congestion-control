@@ -24,5 +24,5 @@ simple MsgCntrl
         @display("i=block/switch");
     gates:
         input in[5];
-        output out[5];
+        inout mc[5];
 }

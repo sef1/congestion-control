@@ -19,27 +19,53 @@ Define_Module(CP);
 
 void CP::initialize()
 {
-	cpPoint = new CPalg(par("Q_eq"),(cModule*)this);
-	Eth_pck *test = new Eth_pck();
-	test->setByteLength(2024);
-	cpPoint->receivedFrame(test);
+	cpPoint = new CPalg((cModule*)this);
+	//Eth_pck *test = new Eth_pck();
+	//test->setByteLength(2024);
+	//cpPoint->receivedFrame(test);
 	//EV << "****Denis TEST: " << cpPoint.markTable[0] << endl;
 	//TODO
 }
 
 void CP::handleMessage(cMessage *msg)
 {
-    // TODO - Generated method body
-	if (check_and_cast<Eth_pck *>(msg)->getType()==0)
-		processFbFrame(msg);//Feedback frame immediately forwarded to the channel without queuing
+	if (check_and_cast<Eth_pck *>(msg)->getLength()==1600)//length 1600 define that Eth packet is Feed Back frame
+		processFbFrame(check_and_cast<FeedBack *>(msg));//Feedback frame immediately forwarded to the channel without queuing
 	else  // message arrived from MsgControl
 		processMsgFromControl(check_and_cast<Eth_pck *>(msg));
 }
+
+void CP::processSelfTimer(cMessage *msg)
+{
+	if (!strcmp(msg->getName(),"sendEvent"))
+	{
+		if (fbMsgQueue.size() !=0)
+		{
+			//TODO there is FB frame on queue
+		}
+//		send(pck,"out");
+//		cChannel* cha= gate("out")->getTransmissionChannel();
+//		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
+	}
+}
+
 /*
  * This function immediately pass msg that shoud be Feed Back frame to the channel
  */
-void CP::processFbFrame(cMessage *msg)
+void CP::processFbFrame(FeedBack *msg)
 {
+	if (fbMsgQueue.size()!=0)
+	{
+		fbMsgQueue.push_back(msg);
+		//cMessage* msg = new cMessage("sendEvent");
+		//scheduleAt(simTime(),msg);//send selfmessage
+
+	}
+	else
+	{
+		//TODO send FB Message
+		send(msg,"out");
+	}
 
 }
 /*
@@ -47,21 +73,41 @@ void CP::processFbFrame(cMessage *msg)
  */
 void CP::processMsgFromControl(Eth_pck *msg)
 {
+	FeedBack *fbMsg = cpPoint->receivedFrame(msg);
+	if (fbMsg != NULL)
+	{
+		send(fbMsg,"mc");//send Feed Back Message to Message controller
+	}
 
+	if (genMsgQueue.size()!=0)
+	{
+
+		genMsgQueue.push_back(msg);
+		//cMessage* msg = new cMessage("sendEvent");
+		//scheduleAt(simTime(),msg);//send selfmessage
+
+	}
+	else
+	{
+		//TODO sending General message
+		send(msg,"out");
+	}
 }
 /*
  * Function implamentation of CPalg class
  */
-CPalg::CPalg(double qeqPar, cModule* fatherM)
+CPalg::CPalg(cModule* fatherM)
 {
 	fatherModul = fatherM;
+	double tempQlength = fatherModul->getAncestorPar("Q_LENGTH");
+	double tempQpercentage = fatherModul->getAncestorPar("Q_EQ_STABLE_PERCENT");
 	//Initialize variables
-	qeq = qeqPar;
-	qlen = 250;//TODO chenge this
+	w = fatherModul->getAncestorPar("W");
+	qeq = tempQlength*tempQpercentage/100;
+	qlen = 0;
 	qntzFb = 0;
 	qlenOld =0;
 	fb = 0;
-	w = 2;
 	timeToMark = markTable[0];
 }
 /*
@@ -80,17 +126,13 @@ int CPalg::quantitize(int toQuan)
 	temp = (temp >> 5);
 	return qntzFb/temp;
 }
-void CPalg::forward(Eth_pck *fbMsg)
-{
-	//TODO complete this
-	//need to check that channel is busy
-	//blablabla...
-}
 
 /*
- * This is the main function of CP algorithm. For each incoming frame
+ * This is the main function of CP algorithm. For each incoming frame this function return FeedBack frame
+ * if algorithm decide to generate FB frame with parameters that calculated in algorithm
+ * else return NULL pointer
  */
-void CPalg::receivedFrame(Eth_pck *incomeFrame)
+FeedBack *CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
 	double nextPeriod;
 	double rnd;
@@ -103,7 +145,7 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 
 	qntzFb = quantitize(fb);
 
-	//sampeling probability is a function of FB
+	//Sampling probability is a function of FB
 	generateFbFrame = 0;
 
 	timeToMark -=incomeFrame->getByteLength()/1000;//length in KB
@@ -116,7 +158,7 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 		//update qlenOld
 		qlenOld = qlen;
 		nextPeriod = markTable[qntzFb/8];
-		//tToMarkRnd parameter that will return rand number defined in ini file
+		//tToMarkRnd parameter that will return random number defined in .ini file
 		rnd = fatherModul->par("tToMarkRnd");
 		timeToMark=rnd*nextPeriod;
 	}
@@ -124,14 +166,18 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 
 	if (generateFbFrame)
 	{
-
 		FeedBack* pck = new FeedBack("Feed Back");
 		pck->setFb(fb);
 		pck->setQOff(qeq-qlen);
 		pck->setQDelta(qlen-qlenOld);
+		return pck;
 	}
+	return NULL;
 }
+/*
+ * Destructor
+ */
 CPalg::~CPalg()
 {
-
+//TODO check what memory need to free
 }
