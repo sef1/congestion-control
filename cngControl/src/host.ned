@@ -25,6 +25,7 @@ simple Host
         int hostNum = default(8);
         volatile int dataLength;
         int destChoice = default(0);
+        // QCN parameters for HOST
     gates:
         input in;
         output out;

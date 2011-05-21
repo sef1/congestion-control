@@ -17,12 +17,14 @@ package cngcontrol;
 
 network Dumbell
 {
-       types:
+    parameters:
+        int W;
+    types:
         channel Channel extends ned.DatarateChannel
         {
-            datarate = 10Gbps;
-            //delay = 10us;
-            //ber = 1e-10;
+                datarate = 10Gbps;
+                //delay = 10us;
+                //ber = 1e-10;
         }
     submodules:
         host[8]: Host {
