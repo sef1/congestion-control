@@ -26,6 +26,7 @@ simple Host
         volatile int dataLength;
         int destChoice = default(0);
         // QCN parameters for HOST
+        bool USING_TIMER;
     gates:
         input in;
         output out;
