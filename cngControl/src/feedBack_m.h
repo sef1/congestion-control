@@ -19,14 +19,18 @@
  * Class generated from <tt>feedBack.msg</tt> by opp_msgc.
  * <pre>
  * packet FeedBack {
- *     int fb;
+ *     unsigned int fb;
+ *     double qOff;
+ *     double qDelta;
  * }
  * </pre>
  */
 class FeedBack : public ::cPacket
 {
   protected:
-    int fb_var;
+    unsigned int fb_var;
+    double qOff_var;
+    double qDelta_var;
 
     // protected and unimplemented operator==(), to prevent accidental usage
     bool operator==(const FeedBack&);
@@ -41,8 +45,12 @@ class FeedBack : public ::cPacket
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
-    virtual int getFb() const;
-    virtual void setFb(int fb_var);
+    virtual unsigned int getFb() const;
+    virtual void setFb(unsigned int fb_var);
+    virtual double getQOff() const;
+    virtual void setQOff(double qOff_var);
+    virtual double getQDelta() const;
+    virtual void setQDelta(double qDelta_var);
 };
 
 inline void doPacking(cCommBuffer *b, FeedBack& obj) {obj.parsimPack(b);}
