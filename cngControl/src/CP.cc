@@ -86,7 +86,10 @@ void CPalg::forward(Eth_pck *fbMsg)
 	//need to check that channel is busy
 	//blablabla...
 }
-//double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
+
+/*
+ * This is the main function of CP algorithm. For each incoming frame
+ */
 void CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
 	double nextPeriod;
@@ -98,14 +101,14 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 	else if (fb>0)
 		fb=0;
 
-	qntzFb = quantitize(fb);//TODO need to check this function
+	qntzFb = quantitize(fb);
 
 	//sampeling probability is a function of FB
 	generateFbFrame = 0;
 
 	timeToMark -=incomeFrame->getByteLength()/1000;//length in KB
 
-	if (timeToMark > 0)//TODO must be <
+	if (timeToMark < 0)
 	{
 		//generate a feedback Frame if fb is negative (qntzFb = 0 if fb =0 or positive)
 		if (qntzFb > 0)
@@ -121,9 +124,11 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 
 	if (generateFbFrame)
 	{
-		//TODO generate FeedBack Frame
-//		Eth_pck *packet;
-//		forward(packet);
+
+		FeedBack* pck = new FeedBack("Feed Back");
+		pck->setFb(fb);
+		pck->setQOff(qeq-qlen);
+		pck->setQDelta(qlen-qlenOld);
 	}
 }
 CPalg::~CPalg()

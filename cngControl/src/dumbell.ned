@@ -18,7 +18,19 @@ package cngcontrol;
 network Dumbell
 {
     parameters:
-        int W;
+        int W = 2;
+        double Q_LENGTH = 300;//Que Length
+        int Q_EQ_STABLE_PERCENT = 20;//Q_QE calculated from Q_LENGTH and Q_EQ_STABLE_PERSENT
+        double BC_LIMIT = 150;
+        double TIMER_PERIOD = 10;//mSec
+        double R_AI = 5;//Mbps;
+        double R_HAI = 50;//Mbps
+        int FAST_RECOVERY_TH = 5;//stages
+        double MIN_RATE = 10;//Mbps
+        double MIN_DEC_FACTOR = 0.5;
+        double MAX_TX = 1000;//Mbps
+        
+        
     types:
         channel Channel extends ned.DatarateChannel
         {

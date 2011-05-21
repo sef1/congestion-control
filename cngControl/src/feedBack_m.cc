@@ -35,6 +35,8 @@ Register_Class(FeedBack);
 FeedBack::FeedBack(const char *name, int kind) : cPacket(name,kind)
 {
     this->fb_var = 0;
+    this->qOff_var = 0;
+    this->qDelta_var = 0;
 }
 
 FeedBack::FeedBack(const FeedBack& other) : cPacket()
@@ -52,6 +54,8 @@ FeedBack& FeedBack::operator=(const FeedBack& other)
     if (this==&other) return *this;
     cPacket::operator=(other);
     this->fb_var = other.fb_var;
+    this->qOff_var = other.qOff_var;
+    this->qDelta_var = other.qDelta_var;
     return *this;
 }
 
@@ -59,22 +63,46 @@ void FeedBack::parsimPack(cCommBuffer *b)
 {
     cPacket::parsimPack(b);
     doPacking(b,this->fb_var);
+    doPacking(b,this->qOff_var);
+    doPacking(b,this->qDelta_var);
 }
 
 void FeedBack::parsimUnpack(cCommBuffer *b)
 {
     cPacket::parsimUnpack(b);
     doUnpacking(b,this->fb_var);
+    doUnpacking(b,this->qOff_var);
+    doUnpacking(b,this->qDelta_var);
 }
 
-int FeedBack::getFb() const
+unsigned int FeedBack::getFb() const
 {
     return fb_var;
 }
 
-void FeedBack::setFb(int fb_var)
+void FeedBack::setFb(unsigned int fb_var)
 {
     this->fb_var = fb_var;
+}
+
+double FeedBack::getQOff() const
+{
+    return qOff_var;
+}
+
+void FeedBack::setQOff(double qOff_var)
+{
+    this->qOff_var = qOff_var;
+}
+
+double FeedBack::getQDelta() const
+{
+    return qDelta_var;
+}
+
+void FeedBack::setQDelta(double qDelta_var)
+{
+    this->qDelta_var = qDelta_var;
 }
 
 class FeedBackDescriptor : public cClassDescriptor
@@ -124,7 +152,7 @@ const char *FeedBackDescriptor::getProperty(const char *propertyname) const
 int FeedBackDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+    return basedesc ? 3+basedesc->getFieldCount(object) : 3;
 }
 
 unsigned int FeedBackDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -137,8 +165,10 @@ unsigned int FeedBackDescriptor::getFieldTypeFlags(void *object, int field) cons
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
 }
 
 const char *FeedBackDescriptor::getFieldName(void *object, int field) const
@@ -151,8 +181,10 @@ const char *FeedBackDescriptor::getFieldName(void *object, int field) const
     }
     static const char *fieldNames[] = {
         "fb",
+        "qOff",
+        "qDelta",
     };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+    return (field>=0 && field<3) ? fieldNames[field] : NULL;
 }
 
 int FeedBackDescriptor::findField(void *object, const char *fieldName) const
@@ -160,6 +192,8 @@ int FeedBackDescriptor::findField(void *object, const char *fieldName) const
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
     if (fieldName[0]=='f' && strcmp(fieldName, "fb")==0) return base+0;
+    if (fieldName[0]=='q' && strcmp(fieldName, "qOff")==0) return base+1;
+    if (fieldName[0]=='q' && strcmp(fieldName, "qDelta")==0) return base+2;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -172,9 +206,11 @@ const char *FeedBackDescriptor::getFieldTypeString(void *object, int field) cons
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldTypeStrings[] = {
-        "int",
+        "unsigned int",
+        "double",
+        "double",
     };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<3) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *FeedBackDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -214,7 +250,9 @@ std::string FeedBackDescriptor::getFieldAsString(void *object, int field, int i)
     }
     FeedBack *pp = (FeedBack *)object; (void)pp;
     switch (field) {
-        case 0: return long2string(pp->getFb());
+        case 0: return ulong2string(pp->getFb());
+        case 1: return double2string(pp->getQOff());
+        case 2: return double2string(pp->getQDelta());
         default: return "";
     }
 }
@@ -229,7 +267,9 @@ bool FeedBackDescriptor::setFieldAsString(void *object, int field, int i, const 
     }
     FeedBack *pp = (FeedBack *)object; (void)pp;
     switch (field) {
-        case 0: pp->setFb(string2long(value)); return true;
+        case 0: pp->setFb(string2ulong(value)); return true;
+        case 1: pp->setQOff(string2double(value)); return true;
+        case 2: pp->setQDelta(string2double(value)); return true;
         default: return false;
     }
 }
@@ -244,8 +284,10 @@ const char *FeedBackDescriptor::getFieldStructName(void *object, int field) cons
     }
     static const char *fieldStructNames[] = {
         NULL,
+        NULL,
+        NULL,
     };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<3) ? fieldStructNames[field] : NULL;
 }
 
 void *FeedBackDescriptor::getFieldStructPointer(void *object, int field, int i) const

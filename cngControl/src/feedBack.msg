@@ -17,5 +17,7 @@
 // TODO generated message class
 //
 packet FeedBack {
-    int fb;
+    unsigned int fb;
+    double qOff;
+    double qDelta;
 }
