@@ -33,11 +33,13 @@ class CPalg
 	int w;
 	int fb;
 	int generateFbFrame;
+	double timeToMark;
+	cModule *fatherModul;
 
 
  public:
 	static double markTable[8];
-	CPalg(double qeqPar);
+	CPalg(double qeqPar, cModule *fatherM);
 	~CPalg();
 	virtual void receivedFrame(Eth_pck *incomeFrame);
 	virtual int quantitize(int toQuan);

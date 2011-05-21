@@ -23,6 +23,7 @@ simple CP
      parameters:
         @display("i=block/switch");
         volatile double Q_eq = 200;//Need to check this
+        volatile double tToMarkRnd;  
     gates:
         input in;
         output out;
