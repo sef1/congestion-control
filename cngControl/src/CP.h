@@ -19,6 +19,10 @@
 #include <omnetpp.h>
 #include "Eth_pck_m.h"
 #include "feedBack_m.h"
+#include <string.h>
+#include <stdio.h>
+#include <vector>
+using namespace std;
 
 /*
  * This class define Conjection Point variables and function
@@ -39,11 +43,10 @@ class CPalg
 
  public:
 	static double markTable[8];
-	CPalg(double qeqPar, cModule *fatherM);
+	CPalg(cModule *fatherM);
 	~CPalg();
-	virtual void receivedFrame(Eth_pck *incomeFrame);
+	virtual FeedBack *receivedFrame(Eth_pck *incomeFrame);
 	virtual int quantitize(int toQuan);
-	virtual void forward(Eth_pck *fbMsg);
 };
 double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
 
@@ -56,8 +59,12 @@ class CP : public cSimpleModule
 	CPalg *cpPoint;
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
-    virtual void processFbFrame(cMessage *msg);
+    virtual void processFbFrame(FeedBack *msg);
     virtual void processMsgFromControl(Eth_pck *msg);
+    virtual void processSelfTimer(cMessage *msg);
+  private:
+    vector<FeedBack*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
+    vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
 };
 
 

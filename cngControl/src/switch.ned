@@ -37,7 +37,7 @@ module Switch
         }
     connections:
         control.in[i] <-- in[i] for i=0..4;
-        conP[i].in <-- control.out[i] for i=0..4;
+        conP[i].mc <--> control.mc[i] for i=0..4;
         conP[i].out --> out[i] for i=0..4;
 
 }
