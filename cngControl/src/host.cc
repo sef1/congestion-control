@@ -63,7 +63,11 @@ void Host::initialize()
 		/*
 		 * initializing variables for QCN algorithm
 		 */
+		int w = findPar("W");
+		w++;
 		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel());
+
+
 }
 
 void Host::handleMessage(cMessage *msg)
@@ -132,6 +136,10 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	Eth_pck* pck = new Eth_pck("sending");
 	unsigned int i;
 	unsigned short length = par("dataLength");
+	while (length < 200 || length > 1500)
+	{
+		length = par("dataLength");
+	}
 	for (i=0; i<pck->getMacDestArraySize()-1;i++)
 	{
 		pck->setMacDest(i,myMac[i]);
@@ -147,6 +155,7 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	pck->setMsgNumber(msgIdCnt++);
 			// creating the type of the message
 	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
+
 	// counting statistics
 	switch (type)
 	{
@@ -214,11 +223,59 @@ RP::~RP(){}
 
 void RP::FeedbackMsg(Eth_pck* msg)
 {
+	/* taking information from the message and deleting it when finished*/
 	FeedBack * FB = check_and_cast<FeedBack*>(msg->decapsulate());
+	/* info */
+	int fb = FB->getFb();
+
+	delete FB;
+
+	// checking if the rate limiter is inactive. need to be initialized
+	if (state == false)
+	{
+		if (fb != 0)
+		{
+			state= true;
+			cRate = maxDataRate;
+			tRate = maxDataRate;
+			SICount = 0;
+		}
+		else
+		{
+			return;
+		}
+	}
+	// at this stage the rate limiter is already active
+	if (fb !=0 )
+	{
+		// using the current rate as the next target rate.
+		// in the first cycle of fast recovery. fb<0 singal wuld ot reset the target rate.
+		if (SICount != 0)
+		{
+			tRate=cRate;
+			TXBCount = 0;
+		}
+		// setting the stage counters
+		SICount =0;
+		timerSCount=0;
+	}
 }
 void RP::afterTransmit(Eth_pck* msg)
 {
+	// Rate limiter should be inactive if the current rate reached the maximum value
+	if (cRate== maxDataRate)
+	{
+		state =false;
+		cRate = maxDataRate;
+		tRate = maxDataRate;
+		TXBCount= 0;
+		SICount= 0;
+		timer = false;
+	}
+	else
+	{
 
+	}
 }
 void RP::selfIncrease()
 {
