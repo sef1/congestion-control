@@ -25,7 +25,6 @@ simple Host
         int hostNum = default(8);
         volatile int dataLength;
         int destChoice = default(0);
-        volatile double maxDataRate= 1000000000;
     gates:
         input in;
         output out;
