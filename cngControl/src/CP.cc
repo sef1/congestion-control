@@ -19,7 +19,7 @@ Define_Module(CP);
 
 void CP::initialize()
 {
-	cpPoint = new CPalg(par("Q_eq"));
+	cpPoint = new CPalg(par("Q_eq"),(cModule*)this);
 	Eth_pck *test = new Eth_pck();
 	test->setByteLength(2024);
 	cpPoint->receivedFrame(test);
@@ -52,8 +52,9 @@ void CP::processMsgFromControl(Eth_pck *msg)
 /*
  * Function implamentation of CPalg class
  */
-CPalg::CPalg(double qeqPar)
+CPalg::CPalg(double qeqPar, cModule* fatherM)
 {
+	fatherModul = fatherM;
 	//Initialize variables
 	qeq = qeqPar;
 	qlen = 250;//TODO chenge this
@@ -61,6 +62,7 @@ CPalg::CPalg(double qeqPar)
 	qlenOld =0;
 	fb = 0;
 	w = 2;
+	timeToMark = markTable[0];
 }
 /*
  * 6 bit quantize get 6 MSB from param toQuan
@@ -87,9 +89,8 @@ void CPalg::forward(Eth_pck *fbMsg)
 //double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
 void CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
-	double periodToMark;
-	double timeToMark = 0;
-	double temp = 0;
+	double nextPeriod;
+	double rnd;
 
 	fb = (qeq - qlen)-w*(qlen -qlenOld);
 	if (fb < -qeq*(2*w+1))
@@ -99,22 +100,24 @@ void CPalg::receivedFrame(Eth_pck *incomeFrame)
 
 	qntzFb = quantitize(fb);//TODO need to check this function
 
-	//sampaling probability is a function of FB
-	periodToMark = markTable[qntzFb/8];
-	if (timeToMark > periodToMark)
+	//sampeling probability is a function of FB
+	generateFbFrame = 0;
+
+	timeToMark -=incomeFrame->getByteLength()/1000;//length in KB
+
+	if (timeToMark > 0)//TODO must be <
 	{
-		//generate a feedback Frame if fb is negative
-		if (fb < 0)
+		//generate a feedback Frame if fb is negative (qntzFb = 0 if fb =0 or positive)
+		if (qntzFb > 0)
 			generateFbFrame = 1;
 		//update qlenOld
 		qlenOld = qlen;
-		timeToMark=0;
+		nextPeriod = markTable[qntzFb/8];
+		//tToMarkRnd parameter that will return rand number defined in ini file
+		rnd = fatherModul->par("tToMarkRnd");
+		timeToMark=rnd*nextPeriod;
 	}
-	else
-	{
-		temp = (incomeFrame->getByteLength())/1000;
-		timeToMark += temp;//timeToMark in KB
-	}
+
 
 	if (generateFbFrame)
 	{
