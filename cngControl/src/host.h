@@ -38,7 +38,7 @@ public:
 	/*
 	 * Description:	this function initializes the RL
 	 */
-	RP(cDatarateChannel* channel);
+	RP(cDatarateChannel* channel,cModule* me);
 	/*
 	 * Description: the destructor for deleting stuff if needed
 	 */
@@ -63,7 +63,7 @@ public:
 	 */
 	virtual void timeExpired();
 
-	double getMaxDataRate(){return maxDataRate;};
+	double getMaxDataRate(){return MAX_DATA_RATE;};
 	bool state;
 	double cRate;
 	double tRate;
@@ -71,8 +71,12 @@ public:
 	int SICount;
 	bool timer;
 	int timerSCount;
+	cModule* mySelf;
 private:
-	double maxDataRate;
+	double MAX_DATA_RATE;
+	double Q_EQ;
+	double FB_MIN;
+	double GD;
 };
 
 class Host : public cSimpleModule

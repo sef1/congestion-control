@@ -16,6 +16,7 @@
 #include "host.h"
 #include "Eth_pck_m.h"
 #include "feedBack_m.h"
+#include <math.h>
 #define FEEDBACK 1600
 #define ARP_REPLY_LENGTH 10
 #define ARP_REQUEST_LENGTH 6
@@ -63,9 +64,7 @@ void Host::initialize()
 		/*
 		 * initializing variables for QCN algorithm
 		 */
-		int w = findPar("W");
-		w++;
-		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel());
+		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this);
 
 
 }
@@ -124,6 +123,10 @@ void Host::processSelfTimer(cMessage *msg)
 		send(pck,"out");
 		cChannel* cha= gate("out")->getTransmissionChannel();
 		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
+	}
+	if (!strcmp(msg->getName(),"timeExpired"))
+	{
+
 	}
 }
 /*
@@ -208,16 +211,24 @@ unsigned char Host::decideSend()
 /*
  * Description: the constructor of RP;
  */
-RP::RP(cDatarateChannel* channel)
+RP::RP(cDatarateChannel* channel,cModule* me)
 {
 	state=false;
 	cRate=channel->getDatarate();
 	tRate=channel->getDatarate();
-	maxDataRate=channel->getDatarate();
+	MAX_DATA_RATE=channel->getDatarate();
 	TXBCount=0;
 	SICount=0;
 	timer=false;
 	timerSCount=0;
+	mySelf = me;
+	// calculated parameters
+	double percent = me->getAncestorPar("Q_EQ_STABLE_PERCENT");
+	double length = me->getAncestorPar("Q_LENGTH");
+	int w = me->getAncestorPar("W");
+	Q_EQ = (percent*length)/100;
+	FB_MIN = -Q_EQ*(2*w+1);
+	GD = 1/(2*abs(FB_MIN));
 }
 RP::~RP(){}
 
@@ -236,8 +247,8 @@ void RP::FeedbackMsg(Eth_pck* msg)
 		if (fb != 0)
 		{
 			state= true;
-			cRate = maxDataRate;
-			tRate = maxDataRate;
+			cRate = MAX_DATA_RATE;
+			tRate = MAX_DATA_RATE;
 			SICount = 0;
 		}
 		else
@@ -253,21 +264,42 @@ void RP::FeedbackMsg(Eth_pck* msg)
 		if (SICount != 0)
 		{
 			tRate=cRate;
-			TXBCount = 0;
+			TXBCount = mySelf->getAncestorPar("BC_LIMIT");
 		}
 		// setting the stage counters
 		SICount =0;
 		timerSCount=0;
+
+		// updating the current rate, multiplicative decrease
+		double minDecFactor = mySelf->getAncestorPar("MIN_DEC_FACTOR");
+		double decFactor = (1-GD*fb);
+		if (decFactor < minDecFactor)
+			decFactor = minDecFactor;
+		cRate=cRate*decFactor;
+		double minRate = mySelf->getAncestorPar("MIN_RATE");
+		if (cRate< minRate)
+			cRate= minRate;
+		cDatarateChannel* tChannel =mySelf->gate("out")->getTransmissionChannel();
+		tChannel->setDatarate(cRate);
+		bool usingTimer= mySelf->getAncestorPar("USING_TIMER");
+		if (usingTimer)
+		{
+			double period = mySelf->getAncestorPar("TIMER_PERIOD");
+			simtime_t time = period; // TODO check if working
+			Host * temp = (Host*)mySelf;
+			cMessage* msg = new cMessage("timeExpired");
+			temp->scheduleAt(simTime()+time,msg);
+		}
 	}
 }
 void RP::afterTransmit(Eth_pck* msg)
 {
 	// Rate limiter should be inactive if the current rate reached the maximum value
-	if (cRate== maxDataRate)
+	if (cRate== MAX_DATA_RATE)
 	{
 		state =false;
-		cRate = maxDataRate;
-		tRate = maxDataRate;
+		cRate = MAX_DATA_RATE;
+		tRate = MAX_DATA_RATE;
 		TXBCount= 0;
 		SICount= 0;
 		timer = false;
