@@ -279,7 +279,7 @@ void RP::FeedbackMsg(Eth_pck* msg)
 		double minRate = mySelf->getAncestorPar("MIN_RATE");
 		if (cRate< minRate)
 			cRate= minRate;
-		cDatarateChannel* tChannel =mySelf->gate("out")->getTransmissionChannel();
+		cDatarateChannel* tChannel =(cDatarateChannel*)mySelf->gate("out")->getTransmissionChannel();
 		tChannel->setDatarate(cRate);
 		bool usingTimer= mySelf->getAncestorPar("USING_TIMER");
 		if (usingTimer)
