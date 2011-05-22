@@ -47,6 +47,9 @@ class CPalg
 	~CPalg();
 	virtual FeedBack *receivedFrame(Eth_pck *incomeFrame);
 	virtual int quantitize(int toQuan);
+	virtual void addQlen(double len);
+	virtual void popQlen(double len);
+	virtual void resQlen();
 };
 double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
 
@@ -62,6 +65,7 @@ class CP : public cSimpleModule
     virtual void processFbFrame(FeedBack *msg);
     virtual void processMsgFromControl(Eth_pck *msg);
     virtual void processSelfTimer(cMessage *msg);
+    virtual void msgTransmit(cMessage *selfMsg, int type);
   private:
     vector<FeedBack*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
     vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
