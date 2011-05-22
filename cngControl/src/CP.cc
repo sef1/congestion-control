@@ -57,7 +57,7 @@ void CP::processSelfTimer(cMessage *msg)
 		}
 	}
 }
-/*
+/* Due to type the function transmits the message:
  * type = 0 for feedback frame
  * type = 1 for general message
  */
@@ -74,29 +74,29 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 		tMsg = genMsgQueue[0];
 		genMsgQueue.erase(genMsgQueue.begin());//pop from General Message queue
 	}
-	send(tMsg,"out");//transmit the General Frame
+	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
 	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
 }
 
 /*
- * This function immediately pass msg that shoud be Feed Back frame to the channel
+ * This function immediately pass msg that shoud be Feed Back frame to the channel if it is not busy
+ * or call self message that care the Feed Back message
  */
 void CP::processFbFrame(FeedBack *msg)
 {
-	if (fbMsgQueue.size()!=0)
+	fbMsgQueue.push_back(msg);
+	cChannel* cha= gate("out")->getTransmissionChannel();
+	if(cha->isBusy())
 	{
-		fbMsgQueue.push_back(msg);
-		//cMessage* msg = new cMessage("sendEvent");
-		//scheduleAt(simTime(),msg);//send selfmessage
-
+		cMessage* tMsg = new cMessage("sendEvent");
+		scheduleAt(simTime(),tMsg);
 	}
 	else
 	{
-		//TODO send FB Message
+		fbMsgQueue.erase(fbMsgQueue.begin());
 		send(msg,"out");
 	}
-
 }
 /*
  * This function take care to all other messages that need to send
