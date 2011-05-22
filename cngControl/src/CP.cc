@@ -20,6 +20,7 @@ Define_Module(CP);
 void CP::initialize()
 {
 	cpPoint = new CPalg((cModule*)this);
+	cpPoint->resQlen();
 	//Eth_pck *test = new Eth_pck();
 	//test->setByteLength(2024);
 	//cpPoint->receivedFrame(test);
@@ -29,10 +30,15 @@ void CP::initialize()
 
 void CP::handleMessage(cMessage *msg)
 {
-	if (check_and_cast<Eth_pck *>(msg)->getLength()==1600)//length 1600 define that Eth packet is Feed Back frame
-		processFbFrame(check_and_cast<FeedBack *>(msg));//Feedback frame immediately forwarded to the channel without queuing
-	else  // message arrived from MsgControl
-		processMsgFromControl(check_and_cast<Eth_pck *>(msg));
+	if (msg->isSelfMessage())
+			processSelfTimer(msg);
+	else // message arrived from Message Control
+	{
+		if (check_and_cast<Eth_pck *>(msg)->getLength()==1600)//length 1600 define that Eth packet is Feed Back frame
+			processFbFrame(check_and_cast<FeedBack *>(msg));//Feedback frame immediately forwarded to the channel without queuing
+		else  // message arrived from MsgControl
+			processMsgFromControl(check_and_cast<Eth_pck *>(msg));
+	}
 }
 
 void CP::processSelfTimer(cMessage *msg)
@@ -40,13 +46,37 @@ void CP::processSelfTimer(cMessage *msg)
 	if (!strcmp(msg->getName(),"sendEvent"))
 	{
 		if (fbMsgQueue.size() !=0)
+			msgTransmit(msg, 0);
+		else
 		{
-			//TODO there is FB frame on queue
+			if (genMsgQueue.size() !=0)
+			{
+				cpPoint->popQlen(genMsgQueue[0]->getByteLength());//sub length from qlen
+				msgTransmit(msg,1);
+			}
 		}
-//		send(pck,"out");
-//		cChannel* cha= gate("out")->getTransmissionChannel();
-//		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
 	}
+}
+/*
+ * type = 0 for feedback frame
+ * type = 1 for general message
+ */
+void CP::msgTransmit(cMessage *selfMsg, int type)
+{
+	cMessage *tMsg;
+	if (type == 0)
+	{
+		tMsg = fbMsgQueue[0];
+		fbMsgQueue.erase(fbMsgQueue.begin());//pop from FeedBack Message queue
+	}
+	else
+	{
+		tMsg = genMsgQueue[0];
+		genMsgQueue.erase(genMsgQueue.begin());//pop from General Message queue
+	}
+	send(tMsg,"out");//transmit the General Frame
+	cChannel* cha= gate("out")->getTransmissionChannel();
+	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
 }
 
 /*
@@ -73,25 +103,26 @@ void CP::processFbFrame(FeedBack *msg)
  */
 void CP::processMsgFromControl(Eth_pck *msg)
 {
+	cpPoint->addQlen(msg->getByteLength()/1000);//qlen in KB
+	genMsgQueue.push_back(msg);
 	FeedBack *fbMsg = cpPoint->receivedFrame(msg);
 	if (fbMsg != NULL)
 	{
-		send(fbMsg,"mc");//send Feed Back Message to Message controller
+		send(fbMsg,"mc");//send my Feed Back Message back to Message controller
 	}
-
-	if (genMsgQueue.size()!=0)
+	cChannel* cha= gate("out")->getTransmissionChannel();
+	if(cha->isBusy())
 	{
-
-		genMsgQueue.push_back(msg);
-		//cMessage* msg = new cMessage("sendEvent");
-		//scheduleAt(simTime(),msg);//send selfmessage
-
+		cMessage* tMsg = new cMessage("sendEvent");
+		scheduleAt(simTime(),tMsg);
 	}
 	else
 	{
-		//TODO sending General message
+		genMsgQueue.erase(genMsgQueue.begin());
+		cpPoint->popQlen(msg->getByteLength()/1000);
 		send(msg,"out");
 	}
+
 }
 /*
  * Function implamentation of CPalg class
@@ -173,6 +204,30 @@ FeedBack *CPalg::receivedFrame(Eth_pck *incomeFrame)
 		return pck;
 	}
 	return NULL;
+}
+
+/*
+ * add len to qlen
+ */
+void CPalg::addQlen(double len)
+{
+	qlen += len;
+}
+/*
+ * pop len ftom qlen
+ */
+void CPalg::popQlen(double len)
+{
+	qlen -= len;
+	if (qlen < 0)
+		qlen = 0;
+}
+/*
+ * add len to qlen
+ */
+void CPalg::resQlen()
+{
+	qlen =0;
 }
 /*
  * Destructor
