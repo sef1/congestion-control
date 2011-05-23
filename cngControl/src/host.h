@@ -63,7 +63,7 @@ public:
 	 */
 	virtual void timeExpired();
 
-	double getMaxDataRate(){return MAX_DATA_RATE;};
+	double getMaxDataRate(){return MAX_DATA_RATE;}
 	bool state;
 	double cRate;
 	double tRate;
