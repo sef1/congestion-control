@@ -32,9 +32,9 @@ void MsgCntrl::initialize()
 	char* fileName= new char[10];
 	sprintf(fileName,"%s%d",temp.c_str(),myMac[4]);
 	cGate *g=gate("in",0);
-	unsigned int hostsNum = g->getVectorSize();
+	hostsNum = g->getVectorSize();
 	switchTbl = new tblEntry[hostsNum];
-	makeTable(fileName, hostsNum);
+	makeTable(fileName);
 //	EV << fileName << endl;
 //	FILE* f1=fopen(fileName,"rt");
 //	fscanf(f1,"%s",temp2);
@@ -51,14 +51,14 @@ void MsgCntrl::initialize()
 }
 
 /*
- * Description: This Function makes switch table from file
+ * Description: This Function makes switch table from files
  */
-void MsgCntrl::makeTable(const char* fileName, const int portNum)
+void MsgCntrl::makeTable(const char* fileName)
 {
 	FILE* fStr = fopen(fileName,"r");
 	int tPort;
 	char* tHost = new char[4];//max 255 host for network
-	for (int i = 0; i < portNum; i++)
+	for (int i = 0; i < hostsNum; i++)
 	{
 		fscanf(fStr,"%d",&tPort);
 		switchTbl[i].port = tPort;
@@ -74,8 +74,55 @@ void MsgCntrl::makeTable(const char* fileName, const int portNum)
 	delete tHost;
 
 }
+void MsgCntrl::processSelfMsg(cMessage *msg)
+{
+
+}
+/*
+ * Description: This function forwards the general not FB message according to matching
+ * between MAC address and switch table entry. If destination MAC address will not be found in
+ * the table the packet will be dropped
+ */
+void MsgCntrl::processMsg(Eth_pck *msg)
+{
+	int i,j;
+	bool portFound = false;
+	int mac = msg->getMacDest(6);
+	//Searching destination MAC address in switch table
+	for (i = 0; i < hostsNum; i++)
+	{
+		for (j = 0; j < (int)switchTbl[i].hostNum.size();j++)
+		{
+			if (mac == switchTbl[i].hostNum[j])
+			{
+				int port = switchTbl[i].port;
+				portFound = true;
+				send(msg,"out",port);
+			}
+		}
+		if(!portFound)
+		{
+			EV << "MsgCntr: Destenation mac address not in the table the message will be droped" << endl;
+			delete msg;
+		}
+
+	}
+}
+void MsgCntrl::processFbMsg(Eth_pck *msg)
+{
+
+}
 
 void MsgCntrl::handleMessage(cMessage *msg)
 {
-    // TODO - Generated method body
+	if (msg->isSelfMessage())
+				processSelfMsg(msg);
+		else // message arrived from Message Control
+		{
+			Eth_pck *message = check_and_cast<Eth_pck *>(msg);
+			if (message->getMacDest(6) == 0)//no MAC destination address
+				processFbMsg(message);//need to feel source and dest MAC addresses
+			else
+				processMsg(message);//process general message
+		}
 }

@@ -18,6 +18,7 @@
 #define MAC_SIZE 6
 
 #include <omnetpp.h>
+#include <Eth_pck_m.h>
 #include <vector>
 
 using namespace std;
@@ -34,8 +35,12 @@ class MsgCntrl : public cSimpleModule
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+    virtual void processSelfMsg(cMessage *msg);
+    virtual void processMsg(Eth_pck *msg);
+    virtual void processFbMsg(Eth_pck *msg);
+    int hostsNum; //Number of Hosts connected to switch
   private:
-    virtual void makeTable(const char* fileName, const int portNum);
+    virtual void makeTable(const char* fileName);
     unsigned short myMac[MAC_SIZE];
     tblEntry* switchTbl;
 };
