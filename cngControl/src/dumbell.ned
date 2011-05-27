@@ -18,17 +18,17 @@ package cngcontrol;
 network Dumbell
 {
     parameters:
-        int W = 2;
-        double Q_LENGTH = 300;//Que Length
-        int Q_EQ_STABLE_PERCENT = 20;//Q_QE calculated from Q_LENGTH and Q_EQ_STABLE_PERSENT
-        double BC_LIMIT = 150;
-        double TIMER_PERIOD = 10;//mSec
-        double R_AI = 5;//Mbps;
-        double R_HAI = 50;//Mbps
-        int FAST_RECOVERY_TH = 5;//stages
-        double MIN_RATE = 10;//Mbps
-        double MIN_DEC_FACTOR = 0.5;
-        double MAX_TX = 1000;//Mbps
+        int W = default(2);
+        double Q_LENGTH =  default(300);//Que Length
+        int Q_EQ_STABLE_PERCENT =  default(20);//Q_QE calculated from Q_LENGTH and Q_EQ_STABLE_PERSENT
+        double BC_LIMIT =  default(150);
+        double TIMER_PERIOD =  default(10);//mSec
+        double R_AI =  default(5);//Mbps;
+        double R_HAI =  default(50);//Mbps
+        int FAST_RECOVERY_TH =  default(5);//stages
+        double MIN_RATE =  default(10);//Mbps
+        double MIN_DEC_FACTOR =  default(0.5);
+        double MAX_TX =  default(1000);//Mbps
         
         
     types:
