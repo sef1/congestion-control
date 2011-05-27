@@ -72,6 +72,7 @@ public:
 	bool timer;
 	int timerSCount;
 	cModule* mySelf;
+	cMessage* selfTimer;
 private:
 	double MAX_DATA_RATE;
 	double Q_EQ;

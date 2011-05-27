@@ -91,6 +91,8 @@ void Host::initialize()
 		FB->setQOff(-100);
 		testEth->setByteLength(55);
 		testEth->encapsulate(FB);
+		RL->SICount++;
+		RL->state=true;
 		RL->FeedbackMsg(testEth);
 
 		/* test for afterTransmit */
@@ -250,6 +252,7 @@ RP::RP(cDatarateChannel* channel,cModule* me)
 	timer=false;
 	timerSCount=0;
 	mySelf = me;
+	selfTimer = new cMessage("timeExpired");
 	// calculated parameters
 	double percent = me->getAncestorPar("Q_EQ_STABLE_PERCENT");
 	double length = me->getAncestorPar("Q_LENGTH");
@@ -257,8 +260,11 @@ RP::RP(cDatarateChannel* channel,cModule* me)
 	Q_EQ = (percent*length)/100;
 	FB_MIN = -Q_EQ*(2*w+1);
 	GD = 1.0/(double)(2*abs(FB_MIN));
+
 }
-RP::~RP(){}
+RP::~RP(){
+	delete selfTimer;
+}
 
 void RP::FeedbackMsg(Eth_pck* msg)
 {
@@ -314,8 +320,7 @@ void RP::FeedbackMsg(Eth_pck* msg)
 			double period = mySelf->getAncestorPar("TIMER_PERIOD");
 			simtime_t time = period*pow(10,-3);
 			Host * temp = (Host*)mySelf;
-			cMessage* msg = new cMessage("timeExpired");
-			temp->scheduleAt(simTime()+time,msg);
+			temp->scheduleAt(simTime()+time,selfTimer);
 		}
 	}
 }
