@@ -84,16 +84,16 @@ void Host::initialize()
 		/* test for generateMessage */
 		/* test for decideSend */
 		/* test for FeedbackMsg */
-		Eth_pck * testEth = new Eth_pck("send");
-		FeedBack * FB = new FeedBack("feedBack");
-		testEth->setLength(FEEDBACK);
-		FB->setFb(40);
-		FB->setQOff(-100);
-		testEth->setByteLength(55);
-		testEth->encapsulate(FB);
-		RL->SICount++;
-		RL->state=true;
-		RL->FeedbackMsg(testEth);
+//		Eth_pck * testEth = new Eth_pck("send");
+//		FeedBack * FB = new FeedBack("feedBack");
+//		testEth->setLength(FEEDBACK);
+//		FB->setFb(40);
+//		FB->setQOff(-100);
+//		testEth->setByteLength(55);
+//		testEth->encapsulate(FB);
+//		RL->SICount++;
+//		RL->state=true;
+//		RL->FeedbackMsg(testEth);
 
 		/* test for afterTransmit */
 		/* test for selfIncrease */
