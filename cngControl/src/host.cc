@@ -54,19 +54,39 @@ void Host::initialize()
 		}
 		cMessage* msg = new cMessage("sendEvent");
 		scheduleAt(simTime(),msg);
-		/*
-		 * initializing statistics variables
-		 */
+		/* initializing statistics variables */
 		requestMsgGenCnt=0;
 		replyMsgGenCnt=0;
 		generalMsgGenCnt=0;
 		replyMsgRecCnt=0;
-		/*
-		 * initializing variables for QCN algorithm
-		 */
+		/* initializing variables for QCN algorithm */
+
 		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this);
 
+		/**** testing area for functions *****/
 
+		/* test for handleMessage */
+
+//		Eth_pck* test1 = new Eth_pck("testing");
+//		handleMessage(test1);
+
+		/* test for proccessMsgFromLowerLayer */
+
+		/* test for process Self timer */
+
+//		cMessage * test1 = new cMessage("timeExpired");
+//		processSelfTimer(test1);
+//		Eth_pck * test2 = generateMessage(general,decideSend());
+//		msgQueue.push_back(test2);
+//		cMessage * selftest = new cMessage("sendEvent");
+//		processSelfTimer(selftest);
+
+		/* test for generateMessage */
+		/* test for decideSend */
+		/* test for FeedbackMsg */
+		/* test for afterTransmit */
+		/* test for selfIncrease */
+		/* test for timeExpired */
 }
 
 void Host::handleMessage(cMessage *msg)
@@ -77,7 +97,7 @@ void Host::handleMessage(cMessage *msg)
 		processMsgFromLowerLayer(check_and_cast<Eth_pck *>(msg));
 }
 /*
- * Description: this function handles messages that were received from switch
+ * Description: this function handles messages that were received from CP
  */
 void Host::processMsgFromLowerLayer(Eth_pck *packet)
 {
@@ -110,7 +130,7 @@ void Host::processSelfTimer(cMessage *msg)
 	if (!strcmp(msg->getName(),"sendEvent"))
 	{
 		Eth_pck* pck;
-		if (msgQueue.size() !=0)
+		if (msgQueue.size() ==0)
 		{
 			unsigned char destination = decideSend();
 			pck=generateMessage(intuniform(0,1),destination);
@@ -120,8 +140,10 @@ void Host::processSelfTimer(cMessage *msg)
 			pck=msgQueue[0];
 			msgQueue.erase(msgQueue.begin());
 		}
-		send(pck,"out");
 		cChannel* cha= gate("out")->getTransmissionChannel();
+		cDatarateChannel * cha1 = (cDatarateChannel*)cha;
+		cha1->setDatarate(RL->cRate);
+		send(pck,"out");
 		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
 	}
 	if (!strcmp(msg->getName(),"timeExpired"))
@@ -158,8 +180,8 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	pck->setMsgNumber(msgIdCnt++);
 			// creating the type of the message
 	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
-
-	// counting statistics
+	pck->setKind(type);
+	/* counting statistics*/
 	switch (type)
 	{
 		case general:
@@ -200,10 +222,7 @@ unsigned char Host::decideSend()
 	switch (choice)
 	{
 	case 0:
-		destination=(unsigned char)intuniform(0,randArr[getVectorSize()-1]);
-		break;
-	default:
-		destination=(unsigned char)intuniform(0,randArr[getVectorSize()-1]);
+		destination=randArr[intuniform(0,getVectorSize()-2)];
 		break;
 	};
 	return destination;
@@ -238,13 +257,13 @@ void RP::FeedbackMsg(Eth_pck* msg)
 	FeedBack * FB = check_and_cast<FeedBack*>(msg->decapsulate());
 	/* info */
 	int fb = FB->getFb();
-
-	delete FB;
+	double qOff = FB->getQOff();
+	double qDelta = FB->getQDelta();
 
 	// checking if the rate limiter is inactive. need to be initialized
 	if (state == false)
 	{
-		if (fb != 0)
+		if (fb != 0 && qOff<0)
 		{
 			state= true;
 			cRate = MAX_DATA_RATE;
