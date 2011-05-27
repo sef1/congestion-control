@@ -61,7 +61,7 @@ void Host::initialize()
 		replyMsgRecCnt=0;
 		/* initializing variables for QCN algorithm */
 
-		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this);
+		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this); //TODO check deletion
 
 		/**** testing area for functions *****/
 
@@ -84,6 +84,15 @@ void Host::initialize()
 		/* test for generateMessage */
 		/* test for decideSend */
 		/* test for FeedbackMsg */
+		Eth_pck * testEth = new Eth_pck("send");
+		FeedBack * FB = new FeedBack("feedBack");
+		testEth->setLength(FEEDBACK);
+		FB->setFb(40);
+		FB->setQOff(-100);
+		testEth->setByteLength(55);
+		testEth->encapsulate(FB);
+		RL->FeedbackMsg(testEth);
+
 		/* test for afterTransmit */
 		/* test for selfIncrease */
 		/* test for timeExpired */
@@ -247,7 +256,7 @@ RP::RP(cDatarateChannel* channel,cModule* me)
 	int w = me->getAncestorPar("W");
 	Q_EQ = (percent*length)/100;
 	FB_MIN = -Q_EQ*(2*w+1);
-	GD = 1/(2*abs(FB_MIN));
+	GD = 1.0/(double)(2*abs(FB_MIN));
 }
 RP::~RP(){}
 
@@ -298,13 +307,12 @@ void RP::FeedbackMsg(Eth_pck* msg)
 		double minRate = mySelf->getAncestorPar("MIN_RATE");
 		if (cRate< minRate)
 			cRate= minRate;
-		cDatarateChannel* tChannel =(cDatarateChannel*)mySelf->gate("out")->getTransmissionChannel();
-		tChannel->setDatarate(cRate);
+
 		bool usingTimer= mySelf->getAncestorPar("USING_TIMER");
 		if (usingTimer)
 		{
 			double period = mySelf->getAncestorPar("TIMER_PERIOD");
-			simtime_t time = period; // TODO check if working
+			simtime_t time = period*pow(10,-3);
 			Host * temp = (Host*)mySelf;
 			cMessage* msg = new cMessage("timeExpired");
 			temp->scheduleAt(simTime()+time,msg);
