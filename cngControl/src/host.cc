@@ -273,7 +273,6 @@ void RP::FeedbackMsg(Eth_pck* msg)
 	/* info */
 	int fb = FB->getFb();
 	double qOff = FB->getQOff();
-	double qDelta = FB->getQDelta();
 
 	// checking if the rate limiter is inactive. need to be initialized
 	if (state == false)
@@ -323,10 +322,14 @@ void RP::FeedbackMsg(Eth_pck* msg)
 			temp->scheduleAt(simTime()+time,selfTimer);
 		}
 	}
+	delete FB;
 }
 void RP::afterTransmit(Eth_pck* msg)
 {
 	// Rate limiter should be inactive if the current rate reached the maximum value
+	int fastRecoveryThreshold = mySelf->getAncestorPar("FAST_RECOVERY_TH");
+	double bcLimit = mySelf->getAncestorPar("BC_LIMIT");
+	double expireThreshold=0;
 	if (cRate== MAX_DATA_RATE)
 	{
 		state =false;
@@ -338,12 +341,95 @@ void RP::afterTransmit(Eth_pck* msg)
 	}
 	else
 	{
-
+		TXBCount -=msg->getByteLength()/1000.0; // in Kbytes
+		if (TXBCount<0)
+		{
+			SICount++;
+			/* if a negative FBframe has not been received after transmitting BC_LIMIT bytes, trigger self_increase; margin of randomness 30%*/
+			double temp = mySelf->par("expThr");
+			if (SICount<fastRecoveryThreshold)
+				expireThreshold= temp*bcLimit;
+			else
+				expireThreshold=temp*(bcLimit/2.0);
+			TXBCount = expireThreshold;
+			selfIncrease();
+		}
 	}
 }
+/*
+ * Description: this is the self increase function. this function increases
+ * 				the rate of the rate limiter according to the current cycle,
+ * 				hyperactive increase: if both the timer counter and byte counter are above FAST_RECOVERY_TH (which is 5)
+ * 				active increase: if timer Counter or byte counter are above FAST_RECOVERY_TH
+ * 				fast recovery: if both are below FAST_RECOVERY_TH
+ * 				when timer is disabled hyperactive increase is not possible option.
+ */
 void RP::selfIncrease()
 {
+	int fastRecoveryThreshold = mySelf->getAncestorPar("FAST_RECOVERY_TH");
+	int toCount = min(SICount,timerSCount);
+	double RHai = mySelf->getAncestorPar("R_HAI");
+	double Rai = mySelf->getAncestorPar("R_AI");
+	double Ri=0;
+	/* if in the active probing stages, increase the target rate */
+	if (SICount> fastRecoveryThreshold || timerSCount > fastRecoveryThreshold)
+	{
+		if (SICount>fastRecoveryThreshold && timerSCount >fastRecoveryThreshold)
+		{
+			/* hyperactive increase*/
+			Ri = RHai*(toCount-fastRecoveryThreshold);
+		}
+		else /*active increase*/
+		{
+			Ri = Rai;
+		}
+	}
+	else /*fast recovery*/
+		Ri =0;
+	/* at the end of the first cycle of recovery*/
+	if ((SICount==1 || timerSCount==1) && tRate>10*cRate)
+	{
+		tRate=tRate/8;  // reason for this --> preventing a case were tRate is WAY higher then cRate,
+						//which will later can create a significant increase in dataRate
+	}
+	else
+	{
+		tRate=tRate+Ri;
+	}
+	// increasing the rate
+	cRate =(tRate+cRate)/2.0;
+
+	/* prevent increasing above the maximum possible value */
+	if (cRate > MAX_DATA_RATE)
+		cRate = MAX_DATA_RATE;
+
 }
+/*
+ * Description: this function will launch after TIMER_PERIOD is over
+ */
 void RP::timeExpired()
 {
+	int fastRecoveryThreshold =mySelf->getAncestorPar("FAST_RECOVERY_TH");
+	double timerPeriod = mySelf->getAncestorPar("TIMER_PERIOD");
+	if (state==true)
+	{
+		timerSCount++;
+		selfIncrease();
+		//reseting the timer
+		// random margin 30%
+		double temp = mySelf->getAncestorPar("expThr");
+		double expirePeriod=0;
+		if (timerSCount < fastRecoveryThreshold)
+		{
+			expirePeriod= temp*timerPeriod;
+		}
+		else
+		{
+			expirePeriod= temp*(timerPeriod/2.0);
+		}
+		// starting the timer again
+		Host * hostTemp = (Host*)mySelf;
+		simtime_t time = expirePeriod;
+		hostTemp->scheduleAt(simTime()+time,selfTimer);
+	}
 }
