@@ -151,6 +151,7 @@ void Host::processSelfTimer(cMessage *msg)
 			pck=msgQueue[0];
 			msgQueue.erase(msgQueue.begin());
 		}
+		RL->afterTransmit(pck);
 		cChannel* cha= gate("out")->getTransmissionChannel();
 		cDatarateChannel * cha1 = (cDatarateChannel*)cha;
 		cha1->setDatarate(RL->cRate);
@@ -159,7 +160,7 @@ void Host::processSelfTimer(cMessage *msg)
 	}
 	if (!strcmp(msg->getName(),"timeExpired"))
 	{
-
+		RL->timeExpired();
 	}
 }
 /*
