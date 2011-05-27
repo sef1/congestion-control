@@ -28,10 +28,17 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
-OBJS = $O/switch.o $O/host.o $O/Eth_pck_m.o
+OBJS = \
+    $O/switch.o \
+    $O/host.o \
+    $O/MsgCntrl.o \
+    $O/CP.o \
+    $O/feedBack_m.o \
+    $O/Eth_pck_m.o
 
 # Message files
 MSGFILES = \
+    feedBack.msg \
     Eth_pck.msg
 
 #------------------------------------------------------------------------------
@@ -102,7 +109,15 @@ depend:
 	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+$O/CP.o: CP.cc \
+	feedBack_m.h \
+	Eth_pck_m.h \
+	CP.h
+$O/MsgCntrl.o: MsgCntrl.cc \
+	Eth_pck_m.h \
+	MsgCntrl.h
 $O/host.o: host.cc \
+	feedBack_m.h \
 	Eth_pck_m.h \
 	host.h
 $O/switch.o: switch.cc \
@@ -110,4 +125,6 @@ $O/switch.o: switch.cc \
 	Eth_pck_m.h
 $O/Eth_pck_m.o: Eth_pck_m.cc \
 	Eth_pck_m.h
+$O/feedBack_m.o: feedBack_m.cc \
+	feedBack_m.h
 

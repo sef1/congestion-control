@@ -25,6 +25,7 @@ simple Host
         int hostNum = default(8);
         volatile int dataLength;
         int destChoice = default(0);
+        volatile double expThr;
         // QCN parameters for HOST
         bool USING_TIMER;
     gates:
