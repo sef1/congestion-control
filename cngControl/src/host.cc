@@ -83,7 +83,11 @@ void Host::initialize()
 
 		/* test for generateMessage */
 		/* test for decideSend */
+
+//		decideSend();
+
 		/* test for FeedbackMsg */
+
 //		Eth_pck * testEth = new Eth_pck("send");
 //		FeedBack * FB = new FeedBack("feedBack");
 //		testEth->setLength(FEEDBACK);
@@ -97,9 +101,19 @@ void Host::initialize()
 
 		/* test for afterTransmit */
 		/* test for selfIncrease */
+
+		RL->SICount=6;
+
+		RL->timerSCount=6;
+
+		RL->cRate=pow(10,9);
+
+		RL->selfIncrease();
 		/* test for timeExpired */
 }
-
+/*
+ * Description:	seperating the self messages and messages from lower layer i.e the channel itself
+ */
 void Host::handleMessage(cMessage *msg)
 {
 	if (msg->isSelfMessage())
@@ -108,7 +122,7 @@ void Host::handleMessage(cMessage *msg)
 		processMsgFromLowerLayer(check_and_cast<Eth_pck *>(msg));
 }
 /*
- * Description: this function handles messages that were received from CP
+ * Description:	this function handles messages that were received from CP
  */
 void Host::processMsgFromLowerLayer(Eth_pck *packet)
 {
@@ -126,14 +140,14 @@ void Host::processMsgFromLowerLayer(Eth_pck *packet)
 			handleRegularMsg(packet);
 		delete packet;
 	}
-	else // message is not mine
+	else // message is not mine, should never be here
 	{
 		// TODO do stuff
 		delete packet;
 	}
 }
 /*
- * Description: this function handles self messges,
+ * Description: this function handles self messages,
  * 				this is the function that sends messages to out gate
  */
 void Host::processSelfTimer(cMessage *msg)
@@ -164,7 +178,7 @@ void Host::processSelfTimer(cMessage *msg)
 	}
 }
 /*
- * Description: this function generates a message to send.
+ * Description:	this function generates a message to send.
  * 				Types - 0 - general, 1- Request , 2- reply
  * 				destination- the msg destination.
  */
@@ -209,7 +223,10 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	return pck;
 }
 /*
- *	Description: this function handles regulare messages
+ *	Description:	this function handles regular messages,
+ *					if a request message is recieved then a reply message is prepared in the queue
+ *					stats are counted here too.
+ *
  */
 void Host::handleRegularMsg(Eth_pck* msg)
 {
@@ -240,7 +257,7 @@ unsigned char Host::decideSend()
 	return destination;
 }
 /*
- * Description: the constructor of RP;
+ * Description:	the constructor of RP, initializing the RL and several other variables.
  */
 RP::RP(cDatarateChannel* channel,cModule* me)
 {
@@ -248,7 +265,7 @@ RP::RP(cDatarateChannel* channel,cModule* me)
 	cRate=channel->getDatarate();
 	tRate=channel->getDatarate();
 	MAX_DATA_RATE=channel->getDatarate();
-	TXBCount=0;
+	TXBCount=me->getAncestorPar("BC_LIMIT");
 	SICount=0;
 	timer=false;
 	timerSCount=0;
@@ -325,24 +342,29 @@ void RP::FeedbackMsg(Eth_pck* msg)
 	}
 	delete FB;
 }
+/*
+ * Description:	this function makes calculation on each frame that is about to get transmitted
+ * 				increases the datarate if needed. counts how many bytes were sent, and counts stages when needed
+ */
 void RP::afterTransmit(Eth_pck* msg)
 {
-	// Rate limiter should be inactive if the current rate reached the maximum value
+
 	int fastRecoveryThreshold = mySelf->getAncestorPar("FAST_RECOVERY_TH");
 	double bcLimit = mySelf->getAncestorPar("BC_LIMIT");
 	double expireThreshold=0;
+	// Rate limiter should be inactive if the current rate reached the maximum value
 	if (cRate== MAX_DATA_RATE)
 	{
 		state =false;
 		cRate = MAX_DATA_RATE;
 		tRate = MAX_DATA_RATE;
-		TXBCount= 0;
+		TXBCount= bcLimit;
 		SICount= 0;
 		timer = false;
 	}
 	else
 	{
-		TXBCount -=msg->getByteLength()/1000.0; // in Kbytes
+		TXBCount -=msg->getByteLength()/1000.0; // in Kbits
 		if (TXBCount<0)
 		{
 			SICount++;
@@ -371,6 +393,8 @@ void RP::selfIncrease()
 	int toCount = min(SICount,timerSCount);
 	double RHai = mySelf->getAncestorPar("R_HAI");
 	double Rai = mySelf->getAncestorPar("R_AI");
+	RHai = RHai * pow(10,6);
+	Rai = Rai * pow(10,6);
 	double Ri=0;
 	/* if in the active probing stages, increase the target rate */
 	if (SICount> fastRecoveryThreshold || timerSCount > fastRecoveryThreshold)
