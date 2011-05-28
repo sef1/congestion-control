@@ -100,6 +100,16 @@ void Host::initialize()
 //		RL->FeedbackMsg(testEth);
 
 		/* test for afterTransmit */
+
+//		RL->SICount=6;
+//
+//		RL->timerSCount=6;
+//
+//		RL->cRate=pow(10,9);
+//		RL->TXBCount = 0.5;
+//		Eth_pck * pck = generateMessage(general,decideSend());
+//		RL->afterTransmit(pck);
+
 		/* test for selfIncrease */
 
 //		RL->SICount=6;
