@@ -194,8 +194,8 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 		timeToMark=rnd*nextPeriod;
 	}
 
-
-	if (generateFbFrame)
+	bool isQcn = fatherModul->par("QCN_ON");
+	if (generateFbFrame && isQcn)
 	{
 		FeedBack* pckFb = new FeedBack("Feed Back");
 		pckFb->setFb(fb);
