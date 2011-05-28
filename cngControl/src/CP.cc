@@ -14,7 +14,7 @@
 // 
 
 #include "CP.h"
-
+#define FEEDBACK 1600
 Define_Module(CP);
 
 void CP::initialize()
@@ -35,7 +35,7 @@ void CP::handleMessage(cMessage *msg)
 			processSelfTimer(msg);
 	else // message arrived from Message Control
 	{
-		if (check_and_cast<Eth_pck *>(msg)->getLength()==1600)//length 1600 define that Eth packet is Feed Back frame
+		if (check_and_cast<Eth_pck *>(msg)->getLength()==FEEDBACK)//length 1600 define that Eth packet is Feed Back frame
 			processFbFrame(check_and_cast<Eth_pck *>(msg));//Feedback frame immediately forwarded to the channel without queuing
 		else  // message arrived from MsgControl
 			processMsgFromControl(check_and_cast<Eth_pck *>(msg));
@@ -105,7 +105,7 @@ void CP::processMsgFromControl(Eth_pck *msg)
 {
 	cpPoint->addQlen(msg->getByteLength()/1000);//qlen in KBits
 	genMsgQueue.push_back(msg);
-	FeedBack *fbMsg = cpPoint->receivedFrame(msg);
+	Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
 	if (fbMsg != NULL)
 	{
 		send(fbMsg,"mc");//send my Feed Back Message back to Message controller
@@ -163,7 +163,7 @@ int CPalg::quantitize(int toQuan)
  * if algorithm decide to generate FB frame with parameters that calculated in algorithm
  * else return NULL pointer
  */
-FeedBack *CPalg::receivedFrame(Eth_pck *incomeFrame)
+Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 {
 	double nextPeriod;
 	double rnd;
@@ -197,10 +197,19 @@ FeedBack *CPalg::receivedFrame(Eth_pck *incomeFrame)
 
 	if (generateFbFrame)
 	{
-		FeedBack* pck = new FeedBack("Feed Back");
-		pck->setFb(fb);
-		pck->setQOff(qeq-qlen);
-		pck->setQDelta(qlen-qlenOld);
+		FeedBack* pckFb = new FeedBack("Feed Back");
+		pckFb->setFb(fb);
+		pckFb->setQOff(qeq-qlen);
+		pckFb->setQDelta(qlen-qlenOld);
+		Eth_pck* pck = new Eth_pck("FeedBack");
+		pck->setKind(5); // will mark feedBack messages with different color
+		for (unsigned int i=0; i <pck->getMacDestArraySize();i++)
+		{
+			pck->setMacDest(i,incomeFrame->getMacSrc(i));
+		}
+		pck->setLength(FEEDBACK); // a feedback message
+		pck->setByteLength(30); // TODO calculate this properly
+		pck->encapsulate(pckFb);
 		return pck;
 	}
 	return NULL;

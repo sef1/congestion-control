@@ -45,7 +45,7 @@ class CPalg
 	static double markTable[8];
 	CPalg(cModule *fatherM);
 	~CPalg();
-	virtual FeedBack *receivedFrame(Eth_pck *incomeFrame);
+	virtual Eth_pck *receivedFrame(Eth_pck *incomeFrame);
 	virtual int quantitize(int toQuan);
 	virtual void addQlen(double len);
 	virtual void popQlen(double len);
