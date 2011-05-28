@@ -359,6 +359,7 @@ void RP::FeedbackMsg(Eth_pck* msg)
 			simtime_t time = period*pow(10,-3);
 			Host * temp = (Host*)mySelf;
 			temp->scheduleAt(simTime()+time,selfTimer);
+			timer = true;
 		}
 	}
 	delete FB;
@@ -381,6 +382,12 @@ void RP::afterTransmit(Eth_pck* msg)
 		tRate = MAX_DATA_RATE;
 		TXBCount= bcLimit;
 		SICount= 0;
+		if (timer)
+		{
+			Host * temp = (Host*)mySelf;
+			temp->cancelAndDelete(selfTimer);
+			selfTimer = new cMessage("timeExpired");
+		}
 		timer = false;
 	}
 	else
