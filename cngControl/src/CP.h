@@ -60,14 +60,15 @@ class CP : public cSimpleModule
 {
   protected:
 	CPalg *cpPoint;
+	cMessage * selfEvent;
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
-    virtual void processFbFrame(FeedBack *msg);
+    virtual void processFbFrame(Eth_pck *msg);
     virtual void processMsgFromControl(Eth_pck *msg);
     virtual void processSelfTimer(cMessage *msg);
     virtual void msgTransmit(cMessage *selfMsg, int type);
   private:
-    vector<FeedBack*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
+    vector<Eth_pck*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
     vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
 };
 
