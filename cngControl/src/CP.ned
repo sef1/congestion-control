@@ -23,7 +23,8 @@ simple CP
      parameters:
         @display("i=block/switch");
         volatile double Q_eq = 200;//Need to check this
-        volatile double tToMarkRnd;  
+        volatile double tToMarkRnd;
+        bool QCN_ON = default(true);  
     gates:
         inout mc;//Message control (mc)
         output out;
