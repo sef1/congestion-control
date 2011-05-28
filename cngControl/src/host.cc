@@ -102,14 +102,25 @@ void Host::initialize()
 		/* test for afterTransmit */
 		/* test for selfIncrease */
 
-		RL->SICount=6;
+//		RL->SICount=6;
+//
+//		RL->timerSCount=6;
+//
+//		RL->cRate=pow(10,9);
+//
+//		RL->selfIncrease();
 
-		RL->timerSCount=6;
-
-		RL->cRate=pow(10,9);
-
-		RL->selfIncrease();
 		/* test for timeExpired */
+
+//		RL->SICount=6;
+//
+//		RL->timerSCount=6;
+//
+//		RL->cRate=pow(10,9);
+//
+//		RL->state = true;
+//
+//		RL->timeExpired();
 }
 /*
  * Description:	seperating the self messages and messages from lower layer i.e the channel itself
@@ -436,6 +447,7 @@ void RP::timeExpired()
 {
 	int fastRecoveryThreshold =mySelf->getAncestorPar("FAST_RECOVERY_TH");
 	double timerPeriod = mySelf->getAncestorPar("TIMER_PERIOD");
+	timerPeriod = timerPeriod * pow(10,-3);
 	if (state==true)
 	{
 		timerSCount++;
