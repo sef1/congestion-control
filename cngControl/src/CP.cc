@@ -204,7 +204,7 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 		{
 			pck->setMacDest(i,incomeFrame->getMacSrc(i));
 		}
-		pck->setLength(FEEDBACK); // a feedback message
+		pck->setLength(FEEDBACK+1); // a feedback message which has no src adress yet
 		pck->setByteLength(30); // TODO calculate this properly
 		pck->encapsulate(pckFb);
 		return pck;
