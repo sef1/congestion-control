@@ -74,8 +74,12 @@ void MsgCntrl::makeTable(const char* fileName)
 	delete tHost;
 
 }
+/*
+ *	Description: this function handles self messages
+ */
 void MsgCntrl::processSelfMsg(cMessage *msg)
 {
+	//TODO optional for later use
 
 }
 /*
@@ -108,11 +112,21 @@ void MsgCntrl::processMsg(Eth_pck *msg)
 
 	}
 }
+/*
+ * Description: message that was received from the CP
+ */
 void MsgCntrl::processFbMsg(Eth_pck *msg)
 {
-
+	for(unsigned int i=0;i<msg->getMacSrcArraySize();i++)
+	{
+		msg->setMacSrc(i,myMac[i]);
+	}
+	msg->setLength(1600);
+	processMsg(msg);
 }
-
+/*
+ * Description:	this function, handles a messages from
+ */
 void MsgCntrl::handleMessage(cMessage *msg)
 {
 	if (msg->isSelfMessage())
@@ -120,8 +134,8 @@ void MsgCntrl::handleMessage(cMessage *msg)
 		else // message arrived from Message Control
 		{
 			Eth_pck *message = check_and_cast<Eth_pck *>(msg);
-			if (message->getMacDest(6) == 0)//no MAC destination address
-				processFbMsg(message);//need to feel source and dest MAC addresses
+			if (message->getLength()==1601)//no MAC source address
+				processFbMsg(message);//need to fill source and dest MAC addresses
 			else
 				processMsg(message);//process general message
 		}
