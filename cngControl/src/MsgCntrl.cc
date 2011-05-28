@@ -91,7 +91,7 @@ void MsgCntrl::processMsg(Eth_pck *msg)
 {
 	int i,j;
 	bool portFound = false;
-	int mac = msg->getMacDest(6);
+	int mac = msg->getMacDest(5);
 	//Searching destination MAC address in switch table
 	for (i = 0; i < hostsNum; i++)
 	{
@@ -101,15 +101,14 @@ void MsgCntrl::processMsg(Eth_pck *msg)
 			{
 				int port = switchTbl[i].port;
 				portFound = true;
-				send(msg,"out",port);
+				send(msg,"mc$o",port);
 			}
 		}
-		if(!portFound)
-		{
-			EV << "MsgCntr: Destenation mac address not in the table the message will be droped" << endl;
-			delete msg;
-		}
-
+	}
+	if(!portFound)
+	{
+		EV << "MsgCntr: Destenation mac address not in the table the message will be droped" << endl;
+		delete msg;
 	}
 }
 /*

@@ -77,6 +77,7 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	}
 	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
+	cancelEvent(selfEvent);
 	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
 }
 
@@ -95,6 +96,7 @@ void CP::processFbFrame(Eth_pck *msg)
 	}
 	else
 	{
+		cancelEvent(selfEvent);
 		scheduleAt(simTime(),selfEvent);
 	}
 }
@@ -108,7 +110,7 @@ void CP::processMsgFromControl(Eth_pck *msg)
 	Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
 	if (fbMsg != NULL)
 	{
-		send(fbMsg,"mc");//send my Feed Back Message back to Message controller
+		send(fbMsg,"mc$o");//send my Feed Back Message back to Message controller
 	}
 	cChannel* cha= gate("out")->getTransmissionChannel();
 	if(cha->isBusy())
@@ -117,6 +119,7 @@ void CP::processMsgFromControl(Eth_pck *msg)
 	}
 	else
 	{
+		cancelEvent(selfEvent);
 		scheduleAt(simTime(),selfEvent);
 	}
 
