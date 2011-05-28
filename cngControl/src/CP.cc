@@ -52,7 +52,7 @@ void CP::processSelfTimer(cMessage *msg)
 		{
 			if (genMsgQueue.size() !=0)
 			{
-				cpPoint->popQlen(genMsgQueue[0]->getByteLength());//sub length from qlen
+				cpPoint->popQlen(genMsgQueue[0]->getByteLength()/1000.0);//sub length from qlen
 				msgTransmit(msg,1);
 			}
 		}
@@ -74,7 +74,6 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	{
 		tMsg = genMsgQueue[0];
 		genMsgQueue.erase(genMsgQueue.begin());//pop from General Message queue
-		cpPoint->popQlen(tMsg->getByteLength()/1000);
 	}
 	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
