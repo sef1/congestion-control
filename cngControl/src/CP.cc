@@ -81,7 +81,7 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 }
 
 /*
- * This function immediately pass msg that shoud be Feed Back frame to the channel if it is not busy
+ * This function immediately pass msg that should be Feed Back frame to the channel if it is not busy
  * or call self message that care the Feed Back message //
  */
 void CP::processFbFrame(Eth_pck *msg)
@@ -117,9 +117,6 @@ void CP::processMsgFromControl(Eth_pck *msg)
 	}
 	else
 	{
-//		genMsgQueue.erase(genMsgQueue.begin());
-//		cpPoint->popQlen(msg->getByteLength()/1000);
-//		send(msg,"out");
 		scheduleAt(simTime(),selfEvent);
 	}
 
@@ -134,7 +131,7 @@ CPalg::CPalg(cModule* fatherM)
 	double tempQpercentage = fatherModul->getAncestorPar("Q_EQ_STABLE_PERCENT");
 	//Initialize variables
 	w = fatherModul->getAncestorPar("W");
-	qeq = tempQlength*tempQpercentage/100;
+	qeq = tempQlength*tempQpercentage/100.0;
 	qlen = 0;
 	qntzFb = 0;
 	qlenOld =0;
@@ -179,7 +176,7 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 	//Sampling probability is a function of FB
 	generateFbFrame = 0;
 
-	timeToMark -=incomeFrame->getByteLength()/1000;//length in KB
+	timeToMark -=incomeFrame->getByteLength()/1000.0;//length in KB
 
 	if (timeToMark < 0)
 	{
