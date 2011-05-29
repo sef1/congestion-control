@@ -150,6 +150,8 @@ int CPalg::quantitize(int toQuan)
 	unsigned int qntzFb = 0;
 	if (toQuan >= 0)
 		return 0;
+	if (toQuan < 64)
+		return toQuan;
 	qntzFb = -1*toQuan;
 	temp = (temp << 31);
 	while(!(qntzFb & temp))
