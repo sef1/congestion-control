@@ -102,6 +102,8 @@ class Host : public cSimpleModule
     unsigned long int generalMsgGenCnt;
     unsigned long int replyMsgRecCnt;
     RP* RL;
+    unsigned int decideCnt;
+    unsigned char target;
 };
 
 #endif

@@ -26,6 +26,7 @@ simple Host
         volatile int dataLength;
         int destChoice = default(0);
         volatile double expThr;
+        int consecutive= default(1); // how many messages in a row
         // QCN parameters for HOST
         bool USING_TIMER;
     gates:

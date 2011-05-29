@@ -39,6 +39,7 @@ void Host::initialize()
 		myMac[5] = getIndex();
 		EV << "Initialize Eth layer: "<< myMac[5] <<"\n";
 		msgIdCnt=0;
+		decideCnt=0;
 		// init rand array for ip randomize, array will hold all adresses of all host but myself
 		// on later stages will random one of the cells.
 		int size = par("hostNum");
@@ -271,8 +272,31 @@ unsigned char Host::decideSend()
 	unsigned char destination;
 	switch (choice)
 	{
-	case 0:
+	case 0: // uniformly distributed
 		destination=randArr[intuniform(0,getVectorSize()-2)];
+		break;
+	case 1: // send always through obvious bottle neck
+		if (getIndex()<(getVectorSize()/2-1))
+			destination=intuniform(getVectorSize()/2,getVectorSize()-1);
+		else
+			destination=intuniform(0,getVectorSize()/2-1);
+		break;
+
+//	case 2: // never send through bottle neck
+//		if (getIndex()<(getVectorSize()/2-1))
+//			destination=intuniform(0,getVectorSize()/2-1);
+//		else
+//			destination=intuniform(getVectorSize()/2,getVectorSize()-1);
+//		break;
+
+	case 2: // first randomize uniformly then target will recieve par("consecutive") msges in a row
+		if (decideCnt==0)
+		{
+			decideCnt=par("consecutive");
+			target =randArr[intuniform(0,getVectorSize()-2)];
+		}
+		destination= target;
+		decideCnt--;
 		break;
 	};
 	return destination;
