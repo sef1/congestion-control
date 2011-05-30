@@ -72,7 +72,11 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	}
 	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
+
+//	if (getParentModule()->getIndex()==0 && getIndex()==0)
+//		EV << "the time is: "<< simTime() << "line is not busy scheduled to: "<< cha->getTransmissionFinishTime() << endl;
 	scheduleAt(cha->getTransmissionFinishTime(),selfMsg);
+
 }
 
 
@@ -94,7 +98,13 @@ void CP::processMsg(Eth_pck *msg)
 	}
 	cChannel* cha= gate("out")->getTransmissionChannel();
 	if(!cha->isBusy())
+	{
+//		if (getParentModule()->getIndex()==0 && getIndex()==0)
+//			EV << "the time is: "<< simTime() << "line is not busy scheduled to NOW" << endl;
+		cancelEvent(selfEvent);
 		scheduleAt(simTime(),selfEvent);
+	}
+
 
 
 }
@@ -222,4 +232,3 @@ CPalg::~CPalg()
 {
 //TODO check what memory need to free
 }
-//TODO for Ran revision
