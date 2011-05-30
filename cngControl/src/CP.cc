@@ -73,7 +73,10 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
 	//cancelEvent(selfEvent);
-	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
+	simtime_t time = cha->getTransmissionFinishTime();
+	double temp = time.dbl();
+	temp++;
+	scheduleAt(cha->getTransmissionFinishTime(),selfMsg);
 }
 
 
