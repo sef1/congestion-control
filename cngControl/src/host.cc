@@ -334,6 +334,8 @@ void RP::FeedbackMsg(Eth_pck* msg)
 	/* taking information from the message and deleting it when finished*/
 	FeedBack * FB = check_and_cast<FeedBack*>(msg->decapsulate());
 	/* info */
+	if (mySelf->getIndex()==6)
+		EV << "break point" << endl;
 	int fb = FB->getFb();
 	double qOff = FB->getQOff();
 
@@ -383,6 +385,7 @@ void RP::FeedbackMsg(Eth_pck* msg)
 			double period = mySelf->getAncestorPar("TIMER_PERIOD");
 			simtime_t time = period*pow(10,-3);
 			Host * temp = (Host*)mySelf;
+			temp->cancelEvent(selfTimer);
 			temp->scheduleAt(simTime()+time,selfTimer);
 			timer = true;
 		}
