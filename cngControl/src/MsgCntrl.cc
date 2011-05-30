@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#define FEEDBACK 1600
 Define_Module(MsgCntrl);
 
 void MsgCntrl::initialize()
@@ -93,9 +94,9 @@ void MsgCntrl::processMsg(Eth_pck *msg)
 	bool portFound = false;
 	int mac = msg->getMacDest(5);
 	//Searching destination MAC address in switch table
-	for (i = 0; i < hostsNum; i++)
+	for (i = 0; i < hostsNum && !portFound; i++)
 	{
-		for (j = 0; j < (int)switchTbl[i].hostNum.size();j++)
+		for (j = 0; j < (int)switchTbl[i].hostNum.size() && !portFound;j++)
 		{
 			if (mac == switchTbl[i].hostNum[j])
 			{
@@ -120,7 +121,7 @@ void MsgCntrl::processFbMsg(Eth_pck *msg)
 	{
 		msg->setMacSrc(i,myMac[i]);
 	}
-	msg->setLength(1600);
+	msg->setLength(FEEDBACK);
 	processMsg(msg);
 }
 /*

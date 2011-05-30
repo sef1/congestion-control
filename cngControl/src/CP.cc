@@ -77,7 +77,7 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	}
 	send(tMsg,"out");//transmit the General or FeedBack Frame
 	cChannel* cha= gate("out")->getTransmissionChannel();
-	cancelEvent(selfEvent);
+	//cancelEvent(selfEvent);
 	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
 }
 
@@ -96,7 +96,7 @@ void CP::processFbFrame(Eth_pck *msg)
 	}
 	else
 	{
-		cancelEvent(selfEvent);
+		//cancelEvent(selfEvent);
 		scheduleAt(simTime(),selfEvent);
 	}
 }
@@ -105,7 +105,7 @@ void CP::processFbFrame(Eth_pck *msg)
  */
 void CP::processMsgFromControl(Eth_pck *msg)
 {
-	cpPoint->addQlen(msg->getByteLength()/1000);//qlen in KBits
+	cpPoint->addQlen(msg->getByteLength()/1000.0);//qlen in KBits
 	genMsgQueue.push_back(msg);
 	Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
 	if (fbMsg != NULL)
@@ -119,7 +119,7 @@ void CP::processMsgFromControl(Eth_pck *msg)
 	}
 	else
 	{
-		cancelEvent(selfEvent);
+		//cancelEvent(selfEvent);
 		scheduleAt(simTime(),selfEvent);
 	}
 
