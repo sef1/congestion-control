@@ -192,7 +192,7 @@ void Host::processSelfTimer(cMessage *msg)
 		cDatarateChannel * cha1 = (cDatarateChannel*)cha;
 		cha1->setDatarate(RL->cRate);
 		send(pck,"out");
-		scheduleAt(simTime()+cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
+		scheduleAt(cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
 	}
 	if (!strcmp(msg->getName(),"timeExpired"))
 	{
