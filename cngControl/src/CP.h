@@ -46,7 +46,7 @@ class CPalg
 	CPalg(cModule *fatherM);
 	~CPalg();
 	virtual Eth_pck *receivedFrame(Eth_pck *incomeFrame);
-	virtual int quantitize(int toQuan);
+	virtual unsigned int quantitize(int toQuan);
 	virtual void addQlen(double len);
 	virtual void popQlen(double len);
 	virtual void resQlen();

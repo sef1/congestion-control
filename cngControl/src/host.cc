@@ -373,6 +373,7 @@ void RP::FeedbackMsg(Eth_pck* msg)
 			decFactor = minDecFactor;
 		cRate=cRate*decFactor;
 		double minRate = mySelf->getAncestorPar("MIN_RATE");
+		minRate=minRate*pow(10,6);
 		if (cRate< minRate)
 			cRate= minRate;
 
