@@ -123,16 +123,16 @@ CPalg::CPalg(cModule* fatherM)
 /*
  * 6 bit quantize get 6 MSB from param toQuan
  */
-int CPalg::quantitize(int toQuan)
+unsigned int CPalg::quantitize(int toQuan)
 {
 	unsigned int temp = 1;
 	unsigned int qntzFb = 0;
+	qntzFb = -1*toQuan;
 	if (toQuan >= 0)
 		return 0;
-	if (toQuan < 64)
-		return toQuan;
-	qntzFb = -1*toQuan;
-	temp = (temp << 31);
+	if (qntzFb < 64)
+		return qntzFb;
+		temp = (temp << 31);
 	while(!(qntzFb & temp))
 		qntzFb = (qntzFb << 1);
 	temp = (temp >> 5);
@@ -179,7 +179,7 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 	if (generateFbFrame && isQcn)
 	{
 		FeedBack* pckFb = new FeedBack("Feed Back");
-		pckFb->setFb(fb);
+		pckFb->setFb(qntzFb);
 		pckFb->setQOff(qeq-qlen);
 		pckFb->setQDelta(qlen-qlenOld);
 		Eth_pck* pck = new Eth_pck("FeedBack");
