@@ -51,7 +51,7 @@ class CPalg
 	virtual void popQlen(double len);
 	virtual void resQlen();
 };
-double CPalg::markTable[8]={150,75,50,37.5,30,25,21.5,18.5};
+double CPalg::markTable[8]={150.0,75.0,50.0,37.5,30.0,25.0,21.5,18.5};
 
 /**
  * TODO - Generated class
@@ -63,8 +63,9 @@ class CP : public cSimpleModule
 	cMessage * selfEvent;
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
-    virtual void processFbFrame(Eth_pck *msg);
-    virtual void processMsgFromControl(Eth_pck *msg);
+//    virtual void processFbFrame(Eth_pck *msg);
+//    virtual void processMsgFromControl(Eth_pck *msg);
+    virtual void processMsg(Eth_pck *msg);
     virtual void processSelfTimer(cMessage *msg);
     virtual void msgTransmit(cMessage *selfMsg, int type);
   private:

@@ -34,12 +34,7 @@ void CP::handleMessage(cMessage *msg)
 	if (msg->isSelfMessage())
 			processSelfTimer(msg);
 	else // message arrived from Message Control
-	{
-		if (check_and_cast<Eth_pck *>(msg)->getLength()==FEEDBACK)//length 1600 define that Eth packet is Feed Back frame
-			processFbFrame(check_and_cast<Eth_pck *>(msg));//Feedback frame immediately forwarded to the channel without queuing
-		else  // message arrived from MsgControl
-			processMsgFromControl(check_and_cast<Eth_pck *>(msg));
-	}
+		processMsg(check_and_cast<Eth_pck *>(msg));
 }
 
 void CP::processSelfTimer(cMessage *msg)
@@ -81,49 +76,30 @@ void CP::msgTransmit(cMessage *selfMsg, int type)
 	scheduleAt(simTime()+cha->getTransmissionFinishTime(),selfMsg);
 }
 
-/*
- * This function immediately pass msg that should be Feed Back frame to the channel if it is not busy
- * or call self message that care the Feed Back message //
- */
-void CP::processFbFrame(Eth_pck *msg)
-{
 
-	fbMsgQueue.push_back(msg);
-	cChannel* cha= gate("out")->getTransmissionChannel();
-	if(cha->isBusy())
+void CP::processMsg(Eth_pck *msg)
+{
+	if (msg->getLength() == FEEDBACK)
 	{
-		//TODO do nothing a send event is already scheduled
+		fbMsgQueue.push_back(msg);
 	}
 	else
 	{
-		//cancelEvent(selfEvent);
-		scheduleAt(simTime(),selfEvent);
-	}
-}
-/*
- * This function take care to all other messages that need to send
- */
-void CP::processMsgFromControl(Eth_pck *msg)
-{
-	cpPoint->addQlen(msg->getByteLength()/1000.0);//qlen in KBits
-	genMsgQueue.push_back(msg);
-	Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
-	if (fbMsg != NULL)
-	{
-		send(fbMsg,"mc$o");//send my Feed Back Message back to Message controller
+		cpPoint->addQlen(msg->getByteLength()/1000.0);//qlen in KBits
+		genMsgQueue.push_back(msg);
+		Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
+		if (fbMsg != NULL)
+		{
+			send(fbMsg,"mc$o");//send my Feed Back Message back to Message controller
+		}
 	}
 	cChannel* cha= gate("out")->getTransmissionChannel();
-	if(cha->isBusy())
-	{
-		//TODO do nothing
-	}
-	else
-	{
-		//cancelEvent(selfEvent);
+	if(!cha->isBusy())
 		scheduleAt(simTime(),selfEvent);
-	}
+
 
 }
+
 /*
  * Function implamentation of CPalg class
  */
