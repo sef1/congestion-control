@@ -36,12 +36,19 @@ class CPalg
 
 
  public:
+
+	//statistic variables and graphs
+	double maxLen;
+	unsigned int pckLoss;
+	cOutVector qLenStat;
+	cStdDev losses;
+
 	static double markTable[8];
 	CPalg(cModule *fatherM);
 	~CPalg();
 	virtual Eth_pck *receivedFrame(Eth_pck *incomeFrame);
 	virtual unsigned int quantitize(int toQuan);
-	virtual void addQlen(double len);
+	virtual bool addQlen(double len);
 	virtual void popQlen(double len);
 	virtual void resQlen();
 };
@@ -52,10 +59,11 @@ double CPalg::markTable[8]={150.0,75.0,50.0,37.5,30.0,25.0,21.5,18.5};
  */
 class CP : public cSimpleModule
 {
+
   protected:
 	CPalg *cpPoint;
 	cMessage * selfEvent;
-    virtual void initialize();
+	virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 //    virtual void processFbFrame(Eth_pck *msg);
 //    virtual void processMsgFromControl(Eth_pck *msg);
@@ -65,6 +73,7 @@ class CP : public cSimpleModule
   private:
     vector<Eth_pck*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
     vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
+
 };
 
 

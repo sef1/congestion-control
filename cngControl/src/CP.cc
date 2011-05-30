@@ -88,13 +88,17 @@ void CP::processMsg(Eth_pck *msg)
 	}
 	else
 	{
-		cpPoint->addQlen(msg->getByteLength()/1000.0);//qlen in KBits
-		genMsgQueue.push_back(msg);
-		Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
-		if (fbMsg != NULL)
+		if(cpPoint->addQlen(msg->getByteLength()/1000.0))//qlen in KBits
 		{
-			send(fbMsg,"mc$o");//send my Feed Back Message back to Message controller
+			genMsgQueue.push_back(msg);
+			Eth_pck *fbMsg = cpPoint->receivedFrame(msg);
+			if (fbMsg != NULL)
+			{
+				send(fbMsg,"mc$o");//send my Feed Back Message back to Message controller
+			}
 		}
+		else
+			delete msg;
 	}
 	cChannel* cha= gate("out")->getTransmissionChannel();
 	if(!cha->isBusy())
@@ -108,6 +112,7 @@ void CP::processMsg(Eth_pck *msg)
 
 
 }
+
 
 /*
  * Function implamentation of CPalg class
@@ -125,6 +130,10 @@ CPalg::CPalg(cModule* fatherM)
 	qlenOld =0;
 	fb = 0;
 	timeToMark = markTable[0];
+
+	/* statistic init */
+	pckLoss = 0;
+	maxLen = fatherM->par("MaxQlen");
 }
 /*
  * 6 bit quantize get 6 MSB from param toQuan
@@ -205,9 +214,18 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 /*
  * add len to qlen
  */
-void CPalg::addQlen(double len)
+bool CPalg::addQlen(double len)
 {
+	if (qlen + len > maxLen)
+	{
+		pckLoss++;
+		losses.collect(pckLoss);
+		return false;
+	}
+
 	qlen += len;
+	qLenStat.record(qlen);
+	return true;
 }
 /*
  * pop len ftom qlen
@@ -217,6 +235,7 @@ void CPalg::popQlen(double len)
 	qlen -= len;
 	if (qlen < 0)
 		qlen = 0;
+	qLenStat.record(qlen);
 }
 /*
  * add len to qlen

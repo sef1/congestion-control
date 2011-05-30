@@ -104,6 +104,10 @@ class Host : public cSimpleModule
     RP* RL;
     unsigned int decideCnt;
     unsigned char target;
+
+    //statistic variables and graphs
+    cOutVector tRateStat;
+
 };
 
 #endif
