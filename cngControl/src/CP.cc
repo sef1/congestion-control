@@ -210,7 +210,32 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 	}
 	return NULL;
 }
+/*
+ *
+ */
+void CP::finish()
+{
+	/* statistics printing */
+		EV << "**** Final statistics for CP["<<getIndex() <<"] at switch["<< getParentModule()->getIndex() << "]"<< endl;
+		EV << endl;
+		EV << "the number of lost packets: " << cpPoint->losses.getMax() << endl;
+	/* deleting stuff */
+	delete cpPoint;
+	cancelAndDelete(selfEvent);
+	for(unsigned int i=0;i<fbMsgQueue.size();i++)
+	{
+		Eth_pck* temp = fbMsgQueue[i];
+		delete temp->decapsulate();
+		delete temp;
+	}
+	for(unsigned int i=0;i<genMsgQueue.size();i++)
+	{
+		Eth_pck* temp = genMsgQueue[i];
+		delete temp;
+	}
 
+
+}
 /*
  * add len to qlen
  */
