@@ -1,7 +1,7 @@
-//TODO graph for cRate on host
+
 //TODO counter for loss packets
 //TODO counter for feedback messages created
-//TODO graph for qlen
+
 //TODO create finish functions in order to delete all undisposed selfmessages and all messages on queues
 //TODO counter for request and reply messages.
 //TODO count the delay from a request message to a reply message - calculate avg delay and standard deviation
@@ -65,8 +65,7 @@ class CP : public cSimpleModule
 	cMessage * selfEvent;
 	virtual void initialize();
     virtual void handleMessage(cMessage *msg);
-//    virtual void processFbFrame(Eth_pck *msg);
-//    virtual void processMsgFromControl(Eth_pck *msg);
+    virtual void finish();
     virtual void processMsg(Eth_pck *msg);
     virtual void processSelfTimer(cMessage *msg);
     virtual void msgTransmit(cMessage *selfMsg, int type);
