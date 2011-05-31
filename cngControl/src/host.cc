@@ -280,7 +280,7 @@ unsigned char Host::decideSend()
 		destination=randArr[intuniform(0,getVectorSize()-2)];
 		break;
 	case 1: // send always through obvious bottle neck
-		if (getIndex()<(getVectorSize()/2-1))
+		if (getIndex()<(getVectorSize()/2))
 			destination=intuniform(getVectorSize()/2,getVectorSize()-1);
 		else
 			destination=intuniform(0,getVectorSize()/2-1);
@@ -324,7 +324,7 @@ RP::RP(cDatarateChannel* channel,cModule* me)
 	double percent = me->getAncestorPar("Q_EQ_STABLE_PERCENT");
 	double length = me->getAncestorPar("Q_LENGTH");
 	int w = me->getAncestorPar("W");
-	Q_EQ = (percent*length)/100;
+	Q_EQ = (percent*length)/100.0;
 	FB_MIN = -Q_EQ*(2*w+1);
 	GD = 1.0/(double)(2*abs(FB_MIN));
 

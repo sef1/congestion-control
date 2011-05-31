@@ -40,7 +40,7 @@ class CPalg
 	//statistic variables and graphs
 	double maxLen;
 	unsigned int pckLoss;
-	cOutVector qLenStat;
+	//cOutVector qLenStat;
 	cStdDev losses;
 
 	static double markTable[8];
@@ -59,19 +59,20 @@ double CPalg::markTable[8]={150.0,75.0,50.0,37.5,30.0,25.0,21.5,18.5};
  */
 class CP : public cSimpleModule
 {
-
-  protected:
+public:
+	simsignal_t qlenSig;
+protected:
 	CPalg *cpPoint;
 	cMessage * selfEvent;
 	virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-    virtual void processMsg(Eth_pck *msg);
-    virtual void processSelfTimer(cMessage *msg);
-    virtual void msgTransmit(cMessage *selfMsg, int type);
-  private:
-    vector<Eth_pck*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
-    vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
+	virtual void handleMessage(cMessage *msg);
+	virtual void finish();
+	virtual void processMsg(Eth_pck *msg);
+	virtual void processSelfTimer(cMessage *msg);
+	virtual void msgTransmit(cMessage *selfMsg, int type);
+private:
+	vector<Eth_pck*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
+	vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
 
 };
 

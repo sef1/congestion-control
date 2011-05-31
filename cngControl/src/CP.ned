@@ -22,6 +22,8 @@ simple CP
 {
      parameters:
         @display("i=block/switch");
+        @signal[QLen](type="double");
+        @statistic[qlen](title="queue size"; source="QLen"; record=vector,stats; interpolationmode=none);
         volatile double Q_eq = 200.0;//Need to check this
         volatile double tToMarkRnd;
         double MaxQlen = 300.0; //KB
