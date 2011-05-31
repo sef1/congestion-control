@@ -22,11 +22,9 @@ void CP::initialize()
 	cpPoint = new CPalg((cModule*)this);
 	cpPoint->resQlen();
 	selfEvent = new cMessage("sendEvent");
-	//Eth_pck *test = new Eth_pck();
-	//test->setByteLength(2024);
-	//cpPoint->receivedFrame(test);
-	//EV << "****Denis TEST: " << cpPoint.markTable[0] << endl;
-	//TODO
+
+	/* for statistics */
+	 qlenSig = registerSignal("QLen");
 }
 
 void CP::handleMessage(cMessage *msg)
@@ -249,7 +247,9 @@ bool CPalg::addQlen(double len)
 	}
 
 	qlen += len;
-	qLenStat.record(qlen);
+	CP* temp = (CP*)fatherModul;
+	temp->emit(temp->qlenSig,qlen);
+	//qLenStat.record(qlen);
 	return true;
 }
 /*
@@ -260,7 +260,7 @@ void CPalg::popQlen(double len)
 	qlen -= len;
 	if (qlen < 0)
 		qlen = 0;
-	qLenStat.record(qlen);
+	//qLenStat.record(qlen);
 }
 /*
  * add len to qlen
