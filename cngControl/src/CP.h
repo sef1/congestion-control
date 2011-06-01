@@ -60,8 +60,15 @@ double CPalg::markTable[8]={150.0,75.0,50.0,37.5,30.0,25.0,21.5,18.5};
 class CP : public cSimpleModule
 {
 public:
+	/* statistics variables */
 	simsignal_t qlenSig;
+
 	simsignal_t lossSig;
+
+	simsignal_t fbSig;
+	double lastTime;
+	double interval;
+	int fbCnt;
 protected:
 	CPalg *cpPoint;
 	cMessage * selfEvent;
