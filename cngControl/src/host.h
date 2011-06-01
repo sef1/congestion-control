@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <vector>
 #include "Eth_pck_m.h"
-
+#define MAX_ID_NUM 30000
 using namespace std;
 typedef struct msgStore{
 	Eth_pck* msg;
@@ -88,7 +88,7 @@ class Host : public cSimpleModule
     virtual void processMsgFromLowerLayer(Eth_pck *packet);
     virtual void processSelfTimer(cMessage *msg);
     unsigned char *myMac; // will hold my mac aderess
-    virtual Eth_pck* generateMessage(int type,unsigned char destination);
+    virtual Eth_pck* generateMessage(int type,unsigned char destination,unsigned int id);
     virtual void handleRegularMsg(Eth_pck* msg);
     virtual unsigned char decideSend();
   private: // description on what those functions do on c file
@@ -96,17 +96,17 @@ class Host : public cSimpleModule
     vector<Eth_pck*> msgQueue; // messages are stored here if channel is busy
     void sendMessage(Eth_pck* etherPacket,const char * gateName);
     unsigned int msgIdCnt;
-    // statistics counters
+    RP* RL;
+    unsigned int decideCnt;
+    unsigned char target;
+    /* statistics counters*/
     unsigned long int requestMsgGenCnt;
     unsigned long int replyMsgGenCnt;
     unsigned long int generalMsgGenCnt;
     unsigned long int replyMsgRecCnt;
-    RP* RL;
-    unsigned int decideCnt;
-    unsigned char target;
-
-    //statistic variables and graphs
     cOutVector tRateStat;
+    /* statistics help*/
+    double timeStamps[MAX_ID_NUM];
 
 };
 

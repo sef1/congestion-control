@@ -25,7 +25,13 @@ void CP::initialize()
 
 	/* for statistics */
 	 qlenSig = registerSignal("QLen");
+
 	 lossSig = registerSignal("LossSg");
+
+	 fbSig = registerSignal("fbCnt");
+	 interval=par("interval");
+	 lastTime=simTime().dbl();
+	 fbCnt=0;
 }
 
 void CP::handleMessage(cMessage *msg)
@@ -205,6 +211,19 @@ Eth_pck *CPalg::receivedFrame(Eth_pck *incomeFrame)
 		pck->setLength(FEEDBACK+1); // a feedback message which has no src adress yet
 		pck->setByteLength(30); // TODO calculate this properly
 		pck->encapsulate(pckFb);
+
+		/* statistics */
+		CP* temp = (CP*)fatherModul;
+		if (simTime().dbl() - temp->lastTime > temp->interval)
+		{
+			temp->emit(temp->fbSig,temp->fbCnt);
+			temp->fbCnt=1;
+			temp->lastTime=simTime().dbl();
+		}
+		else
+		{
+			temp->fbCnt++;
+		}
 		return pck;
 	}
 	return NULL;

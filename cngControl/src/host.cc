@@ -180,7 +180,7 @@ void Host::processSelfTimer(cMessage *msg)
 		if (msgQueue.size() ==0)
 		{
 			unsigned char destination = decideSend();
-			pck=generateMessage(intuniform(0,1),destination);
+			pck=generateMessage(intuniform(0,1),destination,0);
 		}
 		else // sending msg from queue
 		{
@@ -208,7 +208,7 @@ void Host::processSelfTimer(cMessage *msg)
  * 				Types - 0 - general, 1- Request , 2- reply
  * 				destination- the msg destination.
  */
-Eth_pck* Host::generateMessage(int type,unsigned char destination)
+Eth_pck* Host::generateMessage(int type,unsigned char destination,unsigned int id)
 {
 	Eth_pck* pck = new Eth_pck("sending");
 	unsigned int i;
@@ -226,11 +226,10 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 	{
 		pck->setMacSrc(i,myMac[i]);
 	}
+	// creating the type of the message
 	pck->setLength(length);
 	pck->setByteLength(length);
 	// giving the message a number
-	pck->setMsgNumber(msgIdCnt++);
-			// creating the type of the message
 	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
 	pck->setKind(type);
 	/* counting statistics*/
@@ -240,10 +239,17 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination)
 			generalMsgGenCnt++;
 			break;
 		case request:
+			if (msgIdCnt == 30000)
+				msgIdCnt=0;
+			pck->setMsgNumber(msgIdCnt);
+			timeStamps[msgIdCnt++]=simTime().dbl();
+
 			requestMsgGenCnt++;
 			break;
 		case reply:
+			pck->setMsgNumber(id);
 			replyMsgGenCnt++;
+			break;
 
 	}
 	return pck;
@@ -258,11 +264,12 @@ void Host::handleRegularMsg(Eth_pck* msg)
 {
 	if (msg->getType()==request)
 	{
-		Eth_pck* pck = generateMessage(reply,msg->getMacSrc(5));
+		Eth_pck* pck = generateMessage(reply,msg->getMacSrc(5),msg->getMsgNumber());
 		msgQueue.push_back(pck);
 	}
 	else if (msg->getType()==reply)
 	{
+		double delay = simTime().dbl()-timeStamps[msg->getMsgNumber()];
 		replyMsgRecCnt++;
 	}
 }
