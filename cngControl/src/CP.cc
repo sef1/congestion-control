@@ -25,6 +25,7 @@ void CP::initialize()
 
 	/* for statistics */
 	 qlenSig = registerSignal("QLen");
+	 lossSig = registerSignal("LossSg");
 }
 
 void CP::handleMessage(cMessage *msg)
@@ -130,7 +131,7 @@ CPalg::CPalg(cModule* fatherM)
 	timeToMark = markTable[0];
 
 	/* statistic init */
-	pckLoss = 0;
+	//pckLoss = 0;
 	maxLen = fatherM->par("MaxQlen");
 }
 /*
@@ -216,7 +217,6 @@ void CP::finish()
 	/* statistics printing */
 		EV << "**** Final statistics for CP["<<getIndex() <<"] at switch["<< getParentModule()->getIndex() << "]"<< endl;
 		EV << endl;
-		EV << "the number of lost packets: " << cpPoint->losses.getMax() << endl;
 	/* deleting stuff */
 	delete cpPoint;
 	cancelAndDelete(selfEvent);
@@ -239,15 +239,15 @@ void CP::finish()
  */
 bool CPalg::addQlen(double len)
 {
+	CP* temp = (CP*)fatherModul;
 	if (qlen + len > maxLen)
 	{
-		pckLoss++;
-		losses.collect(pckLoss);
+		tLoss = simTime().dbl();
+		temp->emit(temp->lossSig,tLoss);
 		return false;
 	}
 
 	qlen += len;
-	CP* temp = (CP*)fatherModul;
 	temp->emit(temp->qlenSig,qlen);
 	//qLenStat.record(qlen);
 	return true;
