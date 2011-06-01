@@ -82,6 +82,8 @@ private:
 
 class Host : public cSimpleModule
 {
+public:
+	simsignal_t RTTSig;
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

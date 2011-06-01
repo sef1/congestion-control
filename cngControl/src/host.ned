@@ -21,6 +21,8 @@ package cngcontrol;
 simple Host
 {
     parameters:
+        @signal[RTT](type="double");
+        @statistic[Rtt](title="RTT measurment"; source="RTT"; record=vector,stats,histogram; interpolationmode=none);
         @display("i=device/pc");
         int hostNum = default(8);
         volatile int dataLength;

@@ -60,6 +60,7 @@ void Host::initialize()
 		replyMsgGenCnt=0;
 		generalMsgGenCnt=0;
 		replyMsgRecCnt=0;
+		RTTSig = registerSignal("RTT");
 		/* initializing variables for QCN algorithm */
 
 		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this); //TODO check deletion
@@ -230,7 +231,7 @@ Eth_pck* Host::generateMessage(int type,unsigned char destination,unsigned int i
 	pck->setLength(length);
 	pck->setByteLength(length);
 	// giving the message a number
-	pck->setType(intuniform(0,1)); // 0 - General, 1- Request
+	pck->setType(type); // 0 - General, 1- Request
 	pck->setKind(type);
 	/* counting statistics*/
 	switch (type)
@@ -270,6 +271,7 @@ void Host::handleRegularMsg(Eth_pck* msg)
 	else if (msg->getType()==reply)
 	{
 		double delay = simTime().dbl()-timeStamps[msg->getMsgNumber()];
+		emit(RTTSig,delay);
 		replyMsgRecCnt++;
 	}
 }
