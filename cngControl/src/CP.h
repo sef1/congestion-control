@@ -26,6 +26,7 @@ class CPalg
  protected:
 	double qeq;
 	double qlen;
+	double tLoss;//TODO
 	double qlenOld;
 	unsigned int qntzFb;
 	int w;
@@ -39,9 +40,8 @@ class CPalg
 
 	//statistic variables and graphs
 	double maxLen;
-	unsigned int pckLoss;
+
 	//cOutVector qLenStat;
-	cStdDev losses;
 
 	static double markTable[8];
 	CPalg(cModule *fatherM);
@@ -61,6 +61,7 @@ class CP : public cSimpleModule
 {
 public:
 	simsignal_t qlenSig;
+	simsignal_t lossSig;
 protected:
 	CPalg *cpPoint;
 	cMessage * selfEvent;
@@ -73,6 +74,7 @@ protected:
 private:
 	vector<Eth_pck*> fbMsgQueue; // Feed Back messages are stored here if channel is busy
 	vector<Eth_pck*> genMsgQueue; // General messages are stored here if channel is busy
+
 
 };
 
