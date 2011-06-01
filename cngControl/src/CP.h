@@ -1,10 +1,9 @@
 
 //TODO counter for loss packets
-//TODO counter for feedback messages created
 
 //TODO create finish functions in order to delete all undisposed selfmessages and all messages on queues
-//TODO counter for request and reply messages.
-//TODO count the delay from a request message to a reply message - calculate avg delay and standard deviation
+
+
 //TODO create PowerPoint show
 
 #ifndef __CNGCONTROL_CP_H_
