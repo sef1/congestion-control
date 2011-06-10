@@ -23,6 +23,8 @@ simple Host
     parameters:
         @signal[RTT](type="double");
         @statistic[Rtt](title="RTT measurment"; source="RTT"; record=vector,stats,histogram; interpolationmode=none);
+        @signal[dataRate](type="double");
+        @statistic[cRate](title="dataRate"; source="dataRate"; record=vector,stats; interpolationmode=sample-hold);
         @display("i=device/pc");
         int hostNum = default(8);
         volatile int dataLength;

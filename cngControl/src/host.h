@@ -84,6 +84,7 @@ class Host : public cSimpleModule
 {
 public:
 	simsignal_t RTTSig;
+	simsignal_t dataRateSig;
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -106,7 +107,6 @@ public:
     unsigned long int replyMsgGenCnt;
     unsigned long int generalMsgGenCnt;
     unsigned long int replyMsgRecCnt;
-    cOutVector tRateStat;
     /* statistics help*/
     double timeStamps[MAX_ID_NUM];
 

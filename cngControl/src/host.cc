@@ -1,17 +1,3 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
 
 #include "host.h"
 #include "Eth_pck_m.h"
@@ -61,78 +47,10 @@ void Host::initialize()
 		generalMsgGenCnt=0;
 		replyMsgRecCnt=0;
 		RTTSig = registerSignal("RTT");
+		dataRateSig = registerSignal("dataRate");
 		/* initializing variables for QCN algorithm */
 
 		RL = new RP((cDatarateChannel*)gate("out")->getTransmissionChannel(),this); //TODO check deletion
-
-		/**** testing area for functions *****/
-
-		/* test for handleMessage */
-
-//		Eth_pck* test1 = new Eth_pck("testing");
-//		handleMessage(test1);
-
-		/* test for proccessMsgFromLowerLayer */
-
-		/* test for process Self timer */
-
-//		cMessage * test1 = new cMessage("timeExpired");
-//		processSelfTimer(test1);
-//		Eth_pck * test2 = generateMessage(general,decideSend());
-//		msgQueue.push_back(test2);
-//		cMessage * selftest = new cMessage("sendEvent");
-//		processSelfTimer(selftest);
-
-		/* test for generateMessage */
-		/* test for decideSend */
-
-//		decideSend();
-
-		/* test for FeedbackMsg */
-
-//		Eth_pck * testEth = new Eth_pck("send");
-//		FeedBack * FB = new FeedBack("feedBack");
-//		testEth->setLength(FEEDBACK);
-//		FB->setFb(40);
-//		FB->setQOff(-100);
-//		testEth->setByteLength(55);
-//		testEth->encapsulate(FB);
-//		RL->SICount++;
-//		RL->state=true;
-//		RL->FeedbackMsg(testEth);
-
-		/* test for afterTransmit */
-
-//		RL->SICount=6;
-//
-//		RL->timerSCount=6;
-//
-//		RL->cRate=pow(10,9);
-//		RL->TXBCount = 0.5;
-//		Eth_pck * pck = generateMessage(general,decideSend());
-//		RL->afterTransmit(pck);
-
-		/* test for selfIncrease */
-
-//		RL->SICount=6;
-//
-//		RL->timerSCount=6;
-//
-//		RL->cRate=pow(10,9);
-//
-//		RL->selfIncrease();
-
-		/* test for timeExpired */
-
-//		RL->SICount=6;
-//
-//		RL->timerSCount=6;
-//
-//		RL->cRate=pow(10,9);
-//
-//		RL->state = true;
-//
-//		RL->timeExpired();
 }
 /*
  * Description:	seperating the self messages and messages from lower layer i.e the channel itself
@@ -196,7 +114,7 @@ void Host::processSelfTimer(cMessage *msg)
 		scheduleAt(cha->getTransmissionFinishTime(),msg); //scheduling the event again exactly when the channel stops being busy
 
 		/* statistic calculation */
-		tRateStat.record(RL->cRate);
+		emit(dataRateSig,RL->cRate);
 
 	}
 	if (!strcmp(msg->getName(),"timeExpired"))
