@@ -417,7 +417,8 @@ void RP::selfIncrease()
 
 }
 /*
- * Description: this function will launch after TIMER_PERIOD is over
+ * Description: this function will launch after TIMER_PERIOD is over, this funciton increases the stage of the timer stage counter
+ * 				it will also increase the rate of the host if state is true.
  */
 void RP::timeExpired()
 {
