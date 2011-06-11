@@ -1,17 +1,4 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+
 
 #include "MsgCntrl.h"
 #include <string.h>
@@ -36,18 +23,7 @@ void MsgCntrl::initialize()
 	hostsNum = g->getVectorSize();
 	switchTbl = new tblEntry[hostsNum];
 	makeTable(fileName);
-//	EV << fileName << endl;
-//	FILE* f1=fopen(fileName,"rt");
-//	fscanf(f1,"%s",temp2);
-//	EV << temp2 << endl;
 
-//	cGate* inGate = gate("in",0);
-//	inGate->getNextGate();
-//	for (int i = 0; i < SWITCH_PORT_NUM; i++)
-//	{
-//		switchTbl[i].gateName=getGateNames().at(i);
-//	}
-	//EV << getGateNames().at(1) << endl;
 
 }
 

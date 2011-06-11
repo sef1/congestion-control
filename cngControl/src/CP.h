@@ -1,9 +1,4 @@
 
-//TODO counter for loss packets
-
-//TODO create finish functions in order to delete all undisposed selfmessages and all messages on queues
-
-
 //TODO create PowerPoint show
 
 #ifndef __CNGCONTROL_CP_H_
